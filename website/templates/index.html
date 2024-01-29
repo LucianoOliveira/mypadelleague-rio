@@ -1,0 +1,56 @@
+{% extends "base.html" %} {% block title %}My Padel League{% endblock %} 
+{% block content %}
+<!-- New design for games -->
+
+<div class="row justify-content-center">
+  {% for match in matches %}
+  <div class="col-10 col-sm-5 col-md-4 col-lg-3">
+     <div class="card profile-card-2">
+      <div class="card-img-block">
+          <!-- <img class="img-fluid" src="https://via.placeholder.com/800x500" alt="Card image cap"> -->
+          <img class="img-fluid" src="{{ url_for('views.display_court_image', courtID=match.court_id ) }}" alt="Card image cap">
+      </div>
+      <div class="card-body pt-5">
+          <!-- <img src="https://via.placeholder.com/110x110" alt="profile-image" class="profile"> -->
+          <img src="{{ url_for('views.display_club_image_fromCourt', courtID=match.court_id ) }}" alt="profile-image" class="profile">
+          <h5 class="card-title">{{ getClubNameFromCourt(match.court_id) }}, {{ getCourtNameFromCourtID(match.court_id) }}</h5>
+          <h6 class="card-subtitle">{{ match.date_match }}</h6>
+          <p></p>
+          <p class="card-text">{{ getStatusFromStatusID(match.match_status) }}</p>
+          <p class="card-text">{{ match.num_player_enrolled }} / {{ match.num_player_total }}</p>
+          <!-- <div class="icon-block">
+            <a href="javascript:void();"><i class="fa fa-facebook bg-facebook text-white"></i></a>
+            <a href="javascript:void();"> <i class="fa fa-twitter bg-twitter text-white"></i></a>
+            <a href="javascript:void();"> <i class="fa fa-google-plus bg-google-plus text-white"></i></a>
+          </div> -->
+      </div>
+
+     
+      <div class="card-body border-top border-light">
+          {% if match.num_player_enrolled>0 %}
+            {%for i in range(0, match.num_player_total)%}
+            <div class="media align-items-center">
+              <div>
+                  <img src="{{ url_for('views.display_player_in_match', matchID=match.id, ind=i ) }}" class="skill-img" alt="skill img">
+              </div>
+                <div class="media-body text-left ml-3">
+                  <div class="progress-wrapper">
+                    <p>{{ getPlayerNameFromMatchInd(match.id, i) }} <span class="float-right">{{ getPlayerELOFromMatchInd(match.id, i) }}</span></p>
+                    <div class="progress" style="height: 5px;">
+                      <div class="progress-bar" style="width:{{ getPlayerELOPercFromMatchInd(match.id, i) }}%"></div>
+                    </div>
+                    </div>                   
+                </div>
+              </div>
+              <hr>
+            {% endfor %}  
+          {% endif %}                      
+        </div>
+  </div>
+
+  </div>
+  {% endfor %} 
+</div>
+
+
+{% endblock %}
