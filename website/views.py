@@ -97,6 +97,7 @@ def players():
 @views.route('/player_detail/<playerID>')
 def player_detail(playerID):
     current_Player = Players.query.filter_by(pl_id=playerID).first()
+    # TODO - Get data from games to complete user data
     player_data = {
         "player_id": current_Player.pl_id,
         "player_name": current_Player.pl_name,
