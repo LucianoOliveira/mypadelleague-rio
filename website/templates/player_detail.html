@@ -1,0 +1,119 @@
+{% extends "base.html" %} {% block title %}My Padel League{% endblock %} 
+{% block content %}
+<!-- Show every detail of a player -->
+
+<div class="row gutters-sm">
+    <div class="col-md-4 mb-3">
+        <!-- General data -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-column align-items-center text-center">
+                    <img src="{{ url_for('views.display_user_image', userID=player.player_id ) }}" alt="{{ player.player_name }}" class="rounded-circle" width="150">
+                    <div class="mt-3">
+                        <h4>{{ player.player_name }}</h4>
+                        <p class="mb-1">{{ player.numGameDayWins }}</p>
+                        <p class="mb-2">{{ "Último jogo: " + player.lastGamePlayed }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Full data -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Nome</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.player_name }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Email</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.player_email }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Data Nascimento</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.player_birthday }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Idade</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ calculate_age(player.player_birthday) }} Anos
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Jogos Ganhos / Total</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.games_won }} / {{ player.total_games }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Melhor parceiro</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.best_teammate_name }} - {{ player.best_teammate_win_percentage }}% Vitórias em {{ player.best_teammate_total_games }} Jogos.
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Pior parceiro</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.worst_teammate_name }} - {{ player.worst_teammate_lost_percentage }}% Derrotas em {{ player.worst_teammate_total_games }} Jogos.
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Pior adversário</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.worst_nightmare_name }} - {{ player.worst_nightmare_lost_percentage }}% Derrotas em {{ player.worst_nightmare_games }} Jogos.
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <h6 class="mb-0">Melhor adversário</h6>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ player.best_opponent_name }} - {{ player.best_opponent_victory_percentage }}% Vitórias em {{ player.best_opponent_games }} Jogos.
+                    </div>
+                </div>
+                <!-- Add more data elements as needed -->
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <!-- Add any additional buttons or links here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

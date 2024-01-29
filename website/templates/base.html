@@ -3,17 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-      crossorigin="anonymous"
-    /> -->
+ 
 
     <title>{% block title %}{% endblock %}</title>
 
@@ -59,17 +49,10 @@
       <div id="sidebar-wrapper" data-simplebar="" data-simplebar-auto-hide="true">
         <div class="brand-logo">
         {% if user.is_authenticated %}
-        {% if user.user_type=='User' %}  
         <a href="/">
           <!-- <img src="assets/images/logo-icon.png" class="logo-icon" alt="logo icon"> -->
           <h5 class="logo-text">My Padel League</h5>
         </a>
-        {% else %}
-        <a href="/club">
-          <!-- <img src="assets/images/logo-icon.png" class="logo-icon" alt="logo icon"> -->
-          <h5 class="logo-text">My Padel League</h5>
-        </a>
-        {% endif %}
         {% else %}
         <a href="/">
           <!-- <img src="assets/images/logo-icon.png" class="logo-icon" alt="logo icon"> -->

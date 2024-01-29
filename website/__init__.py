@@ -34,5 +34,13 @@ def create_app():
     @login_manager.user_loader
     def load_user(id):
         return Players.query.get(int(id))
+    
+    def calculate_age(birthdate):
+        today = date.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        return age
+    
+    # Make the calculate_age function accessible to the entire application
+    app.jinja_env.globals.update(calculate_age=calculate_age)
 
     return app
