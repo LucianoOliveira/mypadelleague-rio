@@ -134,11 +134,7 @@
         <li class="nav-item">
           <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown" href="#">
             {% if user.is_authenticated %}
-              {% if user.user_type=='User' %}
               <span class="user-profile"><img src="{{ url_for('views.display_user_image', userID=user.id ) }}" class="img-circle" alt="user avatar"></span>
-              {% else %}
-              <span class="user-profile"><img src="{{ url_for('views.display_club_image', clubID=user.id ) }}" class="img-circle" alt="user avatar"></span>
-              {% endif %}
             {% else %}
             <span class="user-profile"><img src="{{ url_for('views.display_user_image', userID=0 ) }}" class="img-circle" alt="user avatar"></span>
             {% endif %}
@@ -147,7 +143,6 @@
             <li class="dropdown-item user-details">
             <a href="javaScript:void();">
                 {% if user.is_authenticated %}
-                  {% if user.user_type=='User' %}
                   <div class="media">
                     <div class="avatar"><img class="align-self-start mr-3" src="{{ url_for('views.display_user_image', userID=user.id ) }}" alt="user avatar"></div>
                   <div class="media-body">
@@ -155,15 +150,6 @@
                   <p class="user-subtitle">{{ user.email }}</p>
                   </div>
                   </div>
-                  {% else %}
-                  <div class="media">
-                    <div class="avatar"><img class="align-self-start mr-3" src="{{ url_for('views.display_club_image', clubID=user.id ) }}" alt="user avatar"></div>
-                  <div class="media-body">
-                  <h6 class="mt-2 user-title">{{ user.first_name }}</h6>
-                  <p class="user-subtitle">{{ user.email }}</p>
-                  </div>
-                  </div>
-                  {% endif %}
                 {% else %}
                 <div class="media">
                   <div class="avatar"><img class="align-self-start mr-3" src="{{ url_for('views.display_user_image', userID=0 ) }}" alt="user avatar"></div>
@@ -176,15 +162,9 @@
               </a>
             </li>
             {% if user.is_authenticated %}
-            {% if user.user_type=='User' %}
             <li class="dropdown-divider"></li>
             <a id="userInfo" href="/userInfo"><li class="dropdown-item"><i class="zmdi zmdi-face mr-2"></i> User Informationt</li></a>
             <!-- <a class="nav-item nav-link" id="userInfo" href="/userInfo">User Information</a> -->
-            {% endif %}
-            <li class="dropdown-divider"></li>
-            <a id="logout" href="/logout"><li class="dropdown-item"><i class="icon-power mr-2"></i> Logout</li></a>
-            <!-- <a class="nav-item nav-link" id="logout" href="/logout">Logout</a> -->
-            {% else %}
             <li class="dropdown-divider"></li>
             <a id="signUp" href="/sign-up"><li class="dropdown-item"><i class="zmdi zmdi-account-circle mr-2"></i> Sign Up</li></a>
             <!-- <a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a> -->
