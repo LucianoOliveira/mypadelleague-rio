@@ -78,85 +78,42 @@
         {% endif %}
       </div>
       <ul class="sidebar-menu do-nicescrol">
-        <li class="sidebar-header">MAIN NAVIGATION</li>
+        <li class="sidebar-header">Navegação</li>
         <li>
-          {% if user.is_authenticated %}
-          {% if user.user_type=='User' %}  
           <a href="/">
-            <i class="zmdi zmdi-view-dashboard"></i> <span>Home</span>
-          </a>
-          {% else %}
-          <a href="/club">
-            <i class="zmdi zmdi-view-dashboard"></i> <span>Home</span>
-          </a>
-          {% endif %}
-          {% else %}
-          <a href="/">
-            <i class="zmdi zmdi-view-dashboard"></i> <span>Home</span>
-          </a>
-          {% endif %}
-          
-        </li>
-        <li>
-          {% if user.is_authenticated %}
-          {% if user.user_type=='User' %}  
-          {% else %}
-          <a href="/nonStop">
-            <i class="zmdi zmdi-collection-plus"></i> <span>Create Non-Stop</span>
-          </a>
-          {% endif %}
-          {% else %}
-          {% endif %}
-        </li>
-
-        <!-- <li>
-          <a href="icons.html">
-            <i class="zmdi zmdi-invert-colors"></i> <span>UI Icons</span>
+            <i class="zmdi zmdi-grid"></i> <span>Ligas</span>
           </a>
         </li>
-
-        <li>
-          <a href="forms.html">
-            <i class="zmdi zmdi-format-list-bulleted"></i> <span>Forms</span>
+        <li>  
+          <a href="/players">
+            <i class="zmdi zmdi-face"></i> <span>Jogadores</span>
           </a>
         </li>
-
-        <li>
-          <a href="tables.html">
-            <i class="zmdi zmdi-grid"></i> <span>Tables</span>
-          </a>
-        </li>
-
-        <li>
-          <a href="calendar.html">
-            <i class="zmdi zmdi-calendar-check"></i> <span>Calendar</span>
-            <small class="badge float-right badge-light">New</small>
-          </a>
-        </li>
-
-        <li>
-          <a href="profile.html">
-            <i class="zmdi zmdi-face"></i> <span>Profile</span>
-          </a>
-        </li>
-
-        <li>
-          <a href="login.html" target="_blank">
-            <i class="zmdi zmdi-lock"></i> <span>Login</span>
-          </a>
-        </li>
-
+        {% if user.is_authenticated %} 
+        <li class="sidebar-header">Gestão</li>
           <li>
-          <a href="register.html" target="_blank">
-            <i class="zmdi zmdi-account-circle"></i> <span>Registration</span>
-          </a>
-        </li>
+            <a href="/managmentLeague">
+              <i class="zmdi zmdi-grid"></i> <span>Gestão Ligas</span>
+            </a>
+          </li>
+          <li>
+            <a href="/managmentGamedays">
+              <i class="zmdi zmdi-calendar-check"></i> <span>Gestão Jornadas</span>
+            </a>
+          </li>
+          <li>
+            <a href="/managmentPlayers">
+              <i class="zmdi zmdi-account"></i> <span>Gestão Jogadores</span>
+            </a>
+          </li>
 
-        <li class="sidebar-header">LABELS</li>
-        <li><a href="javaScript:void();"><i class="zmdi zmdi-coffee text-danger"></i> <span>Important</span></a></li>
-        <li><a href="javaScript:void();"><i class="zmdi zmdi-chart-donut text-success"></i> <span>Warning</span></a></li>
-        <li><a href="javaScript:void();"><i class="zmdi zmdi-share text-info"></i> <span>Information</span></a></li> -->
-
+        <li class="sidebar-header">Classificação </li>
+          <li>
+            <a href="/rankingELO">
+              <i class="zmdi zmdi-grid"></i> <span>Ranking ELO</span>
+            </a>
+          </li>
+        {% endif %}
       </ul>
       
       </div>
