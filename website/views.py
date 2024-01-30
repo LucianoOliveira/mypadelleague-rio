@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, current_user
-from .models import Players, League, GameDay, LeagueClassification
+from .models import Players, League, GameDay, LeagueClassification, Game, GameDayClassification
 from . import db
 import json, os
 from datetime import datetime, date, timedelta
@@ -12,14 +12,6 @@ views =  Blueprint('views', __name__)
 
 @views.route('/', methods=['GET', 'POST'])
 def home():
-
-    # leagues_query = text("""
-    #     SELECT lg_id, lg_name, lg_startDate, lg_endDate,
-    #            SUBSTRING(lg_status, 4) AS lg_status1, lg_level
-    #     FROM tb_league
-    #     ORDER BY lg_status ASC, lg_startDate DESC, lg_id DESC
-    # """)
-    # leagues_data = db.session.execute(leagues_query).fetchall()
     leagues_data = League.query.order_by(League.lg_status).all()
     return render_template("index.html", user=current_user, result=leagues_data)
 
@@ -32,14 +24,15 @@ def players():
 def league_detail(leagueID):
     league_data = League.query.filter_by(lg_id=leagueID).first()
     result = GameDay.query.filter_by(gd_idLeague=leagueID).all()
-    classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).all()
     classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).order_by(desc(LeagueClassification.lc_ranking)).all()
     return render_template("league_detail.html", user=current_user, league=league_data, result=result, classification=classification) 
 
 @views.route('/gameDay/<gameDayID>')
 def gameDay_detail(gameDayID):
     gameDay_data = GameDay.query.filter_by(gd_id=gameDayID).first()
-    return render_template("gameday_detail.html", user=current_user, gameDay=gameDay_data) 
+    results = Game.query.filter_by(gm_idGameDay=gameDayID).order_by(Game.gm_timeStart).all()
+    classifications = GameDayClassification.query.filter_by(gc_idGameDay=gameDayID).order_by(desc(GameDayClassification.gc_ranking)).all()
+    return render_template("gameday_detail.html", user=current_user, gameDay=gameDay_data, result=results, classification=classifications) 
 
 @views.route('/player_detail/<playerID>')
 def player_detail(playerID):
