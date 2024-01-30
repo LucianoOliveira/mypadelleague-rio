@@ -1,56 +1,69 @@
 {% extends "base.html" %} {% block title %}My Padel League{% endblock %} 
 {% block content %}
-<!-- New design for games -->
+<!-- WPT -->
+<link href="../static/css/app-min.css" rel="stylesheet"/>
 
-<div class="row justify-content-center">
-  {% for match in matches %}
-  <div class="col-10 col-sm-5 col-md-4 col-lg-3">
-     <div class="card profile-card-2">
-      <div class="card-img-block">
-          <!-- <img class="img-fluid" src="https://via.placeholder.com/800x500" alt="Card image cap"> -->
-          <img class="img-fluid" src="{{ url_for('views.display_court_image', courtID=match.court_id ) }}" alt="Card image cap">
-      </div>
-      <div class="card-body pt-5">
-          <!-- <img src="https://via.placeholder.com/110x110" alt="profile-image" class="profile"> -->
-          <img src="{{ url_for('views.display_club_image_fromCourt', courtID=match.court_id ) }}" alt="profile-image" class="profile">
-          <h5 class="card-title">{{ getClubNameFromCourt(match.court_id) }}, {{ getCourtNameFromCourtID(match.court_id) }}</h5>
-          <h6 class="card-subtitle">{{ match.date_match }}</h6>
-          <p></p>
-          <p class="card-text">{{ getStatusFromStatusID(match.match_status) }}</p>
-          <p class="card-text">{{ match.num_player_enrolled }} / {{ match.num_player_total }}</p>
-          <!-- <div class="icon-block">
-            <a href="javascript:void();"><i class="fa fa-facebook bg-facebook text-white"></i></a>
-            <a href="javascript:void();"> <i class="fa fa-twitter bg-twitter text-white"></i></a>
-            <a href="javascript:void();"> <i class="fa fa-google-plus bg-google-plus text-white"></i></a>
-          </div> -->
-      </div>
+<!-- Tabela das ligas -->
+<div class="row">
+  <div class="col-lg-12">
+      <div class="card">
+          <div class="card-body">
+              <h5 class="card-title">Ligas</h5>
+              <div class="table-responsive">
+                  <table class="table table-hover">
+                      <thead>
+                          <tr>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for data in result %}
+                              <div class="l-grid l-grid--flex l-grid--flex-centered">
+                                  <div class="c-tournaments c-tournaments--new c-tournaments--fixed">
+                                      <div class="c-tournaments__top-block">
+                                          <div class="c-tournaments__top-block__title">
+                                              <span class="c-tournaments__line"></span>
+                                              <h5>{{ data['lg_status1'] }}</h5>
+                                          </div>
+                                      </div>
+                                      <div class="c-tournaments__container">
+                                          <div class="c-tournaments__poster">
+                                              {% set bigPhoto = "static/photos/leagues/" + data['lg_id']|string + ".jpg"  %}
 
-     
-      <div class="card-body border-top border-light">
-          {% if match.num_player_enrolled>0 %}
-            {%for i in range(0, match.num_player_total)%}
-            <div class="media align-items-center">
-              <div>
-                  <img src="{{ url_for('views.display_player_in_match', matchID=match.id, ind=i ) }}" class="skill-img" alt="skill img">
+                                              {% set smallPhoto = "static/photos/leagues/" + data['lg_id']|string + "s.jpg"  %}
+
+                                              <a target="_blank" href="{{ bigPhoto }}" class="c-trigger">
+                                                  <img src="{{ bigPhoto }}">
+                                              </a>
+                                              <div class="c-tournaments__img c-tournaments__img--bg" style="background-image: url({{ bigPhoto }});"></div>
+                                          </div>
+                                          <div class="c-tournaments__content">
+                                              <header class="c-tournaments__top-card">
+                                                  <div class="c-tournaments__header" style="background:url('{{ smallPhoto }}');"></div>
+                                                  <p class="c-tournaments__date">De {{ data['lg_startDate'] }} a {{ data['lg_endDate'] }}</p>
+                                              </header>
+                                              <footer class="c-tournaments__bottom-card">
+                                                  <div class="c-tournaments__header">
+                                                      <h3 class="c-tournaments__title">{{ data['lg_name'] }}</h3>
+                                                      <p class="c-tournaments__cat">Categoria: {{ data['lg_level'] }}</p>
+                                                  </div>
+                                              </footer>
+                                              <div class="c-tournaments__triggers">
+                                                  <a class="c-btn c-btn--secondary" href="{{ url_for('views.league_detail', leagueID=data['lg_id']) }}">+ DETALHE</a>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+
+                          {% endfor %}
+                      </tbody>
+                  </table>
               </div>
-                <div class="media-body text-left ml-3">
-                  <div class="progress-wrapper">
-                    <p>{{ getPlayerNameFromMatchInd(match.id, i) }} <span class="float-right">{{ getPlayerELOFromMatchInd(match.id, i) }}</span></p>
-                    <div class="progress" style="height: 5px;">
-                      <div class="progress-bar" style="width:{{ getPlayerELOPercFromMatchInd(match.id, i) }}%"></div>
-                    </div>
-                    </div>                   
-                </div>
-              </div>
-              <hr>
-            {% endfor %}  
-          {% endif %}                      
-        </div>
+          </div>
+      </div>
   </div>
+</div><!-- End Row -->
 
-  </div>
-  {% endfor %} 
-</div>
 
 
 {% endblock %}

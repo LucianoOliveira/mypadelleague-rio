@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block title %}My Padel League{% endblock %} 
+{% block content %}
+<!-- Show front page of league -->
+
+<!-- Table of gamedays -->
+<div class="row">
+    {% for data in result %}
+    <div class="col-lg-3">
+        <a href="{{ url_for('views.gameDay_detail', gameDayID=data['gd_id']) }}">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{{ league.lg_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <br>Data : {{ data['gd_date'] }}</br>
+                    <br>Estado : {{ data['gd_status'] }}</br>
+                    {% if data['gd_status'] == 'Terminado' %}
+                        <br>Vencedores: {{ data['gd_nameWinner1'] }} / {{ data['gd_nameWinner2'] }}</br>
+                    {% else %}
+                        <br>Vencedores: </br>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div><!-- End Row -->
+
+
+
+
+{% endblock %}
