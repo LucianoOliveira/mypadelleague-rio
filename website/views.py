@@ -90,7 +90,7 @@ def players():
             db.session.add(player)
 
         db.session.commit()
-    players_data = Players.query.all()
+    players_data = Players.query.order_by(Players.pl_name).all()
     return render_template('players.html', user=current_user, players=players_data)
 
 
@@ -103,22 +103,22 @@ def player_detail(playerID):
         "player_name": current_Player.pl_name,
         "player_email": current_Player.pl_email,
         "player_birthday": current_Player.pl_birthday,
-        "numGameDayWins": 3,
+        "numGameDayWins": "Venceu 2 NonStop",
         "lastGamePlayed": "2024-01-02",
         "games_won": 50,
         "total_games": 100,
-        "best_teammate_name": "Jane Doe",
-        "best_teammate_win_percentage": 75.0,
-        "best_teammate_total_games": 50,
-        "worst_teammate_name": "Jane Doew",
+        "best_teammate_name": "Best Team Mate",
+        "best_teammate_win_percentage": 100.0,
+        "best_teammate_total_games": 11,
+        "worst_teammate_name": "Worst Team Mate",
         "worst_teammate_lost_percentage": 75.0,
-        "worst_teammate_total_games": 50,
-        "worst_nightmare_name": "Jane Doe",
-        "worst_nightmare_lost_percentage": 75.0,
-        "worst_nightmare_games": 50,
-        "best_opponent_name": "Jane Doew",
-        "best_opponent_victory_percentage": 75.0,
-        "best_opponent_games": 50
+        "worst_teammate_total_games": 4,
+        "worst_nightmare_name": "Worst Nightmare",
+        "worst_nightmare_lost_percentage": 80.0,
+        "worst_nightmare_games": 10,
+        "best_opponent_name": "Best Opponent",
+        "best_opponent_victory_percentage": 100.0,
+        "best_opponent_games": 5
     }
     return render_template("player_detail.html", user=current_user, player=player_data)   
 
