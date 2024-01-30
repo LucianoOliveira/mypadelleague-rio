@@ -13,14 +13,14 @@ views =  Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 def home():
 
-    # leagues_query = text("""
-    #     SELECT lg_id, lg_name, lg_startDate, lg_endDate,
-    #            SUBSTRING(lg_status, 4) AS lg_status1, lg_level
-    #     FROM tb_league
-    #     ORDER BY lg_status ASC, lg_startDate DESC, lg_id DESC
-    # """)
-    # leagues_data = db.session.execute(leagues_query).fetchall()
-    leagues_data = League.query.order_by(League.lg_status).all()
+    leagues_query = text("""
+        SELECT lg_id, lg_name, lg_startDate, lg_endDate,
+               SUBSTRING(lg_status, 4) AS lg_status1, lg_level
+        FROM tb_league
+        ORDER BY lg_status ASC, lg_startDate DESC, lg_id DESC
+    """)
+    leagues_data = db.session.execute(leagues_query).fetchall()
+    # leagues_data = League.query.order_by(League.lg_status).all()
     return render_template("index.html", user=current_user, result=leagues_data)
 
 @views.route('/players', methods=['GET', 'POST'])
