@@ -32,7 +32,7 @@ def gameDay_detail(gameDayID):
     gameDay_data = GameDay.query.filter_by(gd_id=gameDayID).first()
     results = Game.query.filter_by(gm_idGameDay=gameDayID).order_by(Game.gm_timeStart).all()
     classifications = GameDayClassification.query.filter_by(gc_idGameDay=gameDayID).order_by(desc(GameDayClassification.gc_ranking)).all()
-    return render_template("gameday_detail.html", user=current_user, gameDay=gameDay_data, result=results, classification=classifications) 
+    return render_template("gameDay_detail.html", user=current_user, gameDay=gameDay_data, result=results, classification=classifications) 
 
 @views.route('/player_detail/<playerID>')
 def player_detail(playerID):
