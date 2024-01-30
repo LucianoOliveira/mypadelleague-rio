@@ -51,17 +51,17 @@
                             {% for data in classification %}
                             <tr data-href="{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}">
                                 <!-- <th scope="row">{{ data['lc_idPlayer'] }}</th> -->
-                                <td class="">
+                                <td class=""  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">
                                     <img src="{{ url_for('views.display_user_image', userID=data['lc_idPlayer'] ) }}" alt="{{ data['lc_namePlayer'] }}" class="rounded-circle" width="40">
                                     {{ data['lc_namePlayer'] }}
                                 </td>
-                                <td class="">{{ data['lc_points'] }}</td>
-                                <td class="d-none d-md-table-cell">{{ data['lc_wins'] }}</td>
-                                <td class="d-none d-md-table-cell">{{ data['lc_losses'] }}</td>
-                                <td class="d-none d-xl-table-cell">{{ data['lc_gamesFavor'] }}</td>
-                                <td class="d-none d-xl-table-cell">{{ data['lc_gamesAgainst'] }}</td>
-                                <td class="d-none d-xl-table-cell">{{ data['lc_gamesDiff'] }}</td>
-                                <td class="d-none d-xl-table-cell">{{ data['lc_ranking'] }}</td>
+                                <td class="" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_points'] }}</td>
+                                <td class="d-none d-md-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_wins'] }}</td>
+                                <td class="d-none d-md-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_losses'] }}</td>
+                                <td class="d-none d-xl-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_gamesFavor'] }}</td>
+                                <td class="d-none d-xl-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_gamesAgainst'] }}</td>
+                                <td class="d-none d-xl-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_gamesDiff'] }}</td>
+                                <td class="d-none d-xl-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_ranking'] }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
