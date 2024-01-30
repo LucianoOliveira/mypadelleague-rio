@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, current_user
-from .models import Players, League, GameDay
+from .models import Players, League, GameDay, LeagueClassification
 from . import db
 import json, os
 from datetime import datetime, date, timedelta
-from sqlalchemy import and_, func, cast, String, text
+from sqlalchemy import and_, func, cast, String, text, desc
 
 
 views =  Blueprint('views', __name__)
@@ -32,7 +32,9 @@ def players():
 def league_detail(leagueID):
     league_data = League.query.filter_by(lg_id=leagueID).first()
     result = GameDay.query.filter_by(gd_idLeague=leagueID).all()
-    return render_template("league_detail.html", user=current_user, league=league_data, result=result) 
+    classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).all()
+    classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).order_by(desc(LeagueClassification.lc_ranking)).all()
+    return render_template("league_detail.html", user=current_user, league=league_data, result=result, classification=classification) 
 
 @views.route('/gameDay/<gameDayID>')
 def gameDay_detail(gameDayID):
