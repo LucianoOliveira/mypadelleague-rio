@@ -141,6 +141,8 @@ class Players(db.Model, UserMixin):
     pl_level_mx = db.Column(db.Integer)
     pl_2024_ELO = db.Column(db.Integer, nullable=False, default=0)
     pl_ranking_stat = db.Column(db.String(1), nullable=False, default='Y')
+    def get_id(self):
+        return str(self.pl_id)
 
 class RoundRobinTeams(db.Model):
     __tablename__ = 'tb_roundRobinTeams'
