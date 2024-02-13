@@ -108,7 +108,7 @@
               </thead>
               <tbody>
                 {% for data in classification %}
-                  <tr data-href="playerBio.php?playerId={{ data['gc_idPlayer'] }}">
+                  <tr>
                     <!-- <th scope="row">{{ data['gc_idPlayer'] }}</th> -->
                     {% set photoPath = "../static/photos/users/" + data['gc_idPlayer']|string + "/main.jpg"  %}
                     <td class=""  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['gc_idPlayer']) }}';"><img src="{{ photoPath }}" alt="Admin" class="rounded-circle" width="40"> {{ data['gc_namePlayer'] }}</td>
