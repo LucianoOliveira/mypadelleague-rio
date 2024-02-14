@@ -738,9 +738,9 @@ def calculateLeagueClassification(leagueID):
                         func.sum(subquery.c.GAMESAGAINST).label("GAMESAGAINST"),
                         (func.sum(subquery.c.GAMESFAVOR) - func.sum(subquery.c.GAMESAGAINST)).label("GAMESDIFFERENCE"),
                         (
-                            (func.sum(subquery.c.POINTS) + func.sum(subquery.c.GAMES) / 3) * 100000 +
-                            (func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000 +
-                            (func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100 +
+                            ((func.sum(subquery.c.POINTS) + func.sum(subquery.c.GAMES) / 3) * 100000) +
+                            ((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000) +
+                            ((func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100) +
                             (player_age / 100)
                         ).label("RANKING")
                     )
@@ -901,9 +901,9 @@ def calculateGameDayClassification(gameDayID):
                         func.sum(subquery.c.GAMESAGAINST).label("GAMESAGAINST"),
                         (func.sum(subquery.c.GAMESFAVOR) - func.sum(subquery.c.GAMESAGAINST)).label("GAMESDIFFERENCE"),
                         (
-                            (func.sum(subquery.c.POINTS) + func.sum(subquery.c.GAMES) / 3) * 100000 +
-                            (func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000 +
-                            (func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100 +
+                            ((func.sum(subquery.c.POINTS) + func.sum(subquery.c.GAMES) / 3) * 100000) +
+                            ((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000) +
+                            ((func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100) +
                             (player_age / 100)
                         ).label("RANKING")
                     )
