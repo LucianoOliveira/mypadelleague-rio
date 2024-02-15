@@ -806,11 +806,10 @@ def calculateGameDayClassification(gameDayID):
 
         players_query = Players.query.filter(Players.pl_id.in_(db.session.query(GameDayPlayer.gp_idPlayer).filter(GameDayPlayer.gp_idGameDay == gameDayID).group_by(GameDayPlayer.gp_idPlayer)))
         players_data = players_query.all()
-        for p1 in players_data:
-            print(p1)
 
 
         for player in players_data:
+            print(player)
             id_player = player.pl_id
             player_name = player.pl_name
             player_birthday = player.pl_birthday
@@ -910,6 +909,10 @@ def calculateGameDayClassification(gameDayID):
                     .select_from(subquery)
                     .group_by("GAMEDAYID", "PLAYERID", "PLAYERNAME")
                 )
+                print("testing")
+                print(f"1 {func.sum(subquery.c.WINS)}")
+                print(f"2 {func.sum(subquery.c.GAMES)}")
+                print(f"3 {((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000)}")
 
                 result = query.all()
 
