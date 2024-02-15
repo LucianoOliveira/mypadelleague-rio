@@ -886,7 +886,7 @@ def calculateGameDayClassification(gameDayID):
                     .filter(Game.gm_idGameDay == gameDayID, (Game.gm_idPlayer_A1 == id_player) | (Game.gm_idPlayer_A2 == id_player) | (Game.gm_idPlayer_B1 == id_player) | (Game.gm_idPlayer_B2 == id_player))
                     .subquery("TOTALS")
                 )
-
+                
                 query = (
                     db.session.query(
                         literal_column(str(leagueID)).label("LEAGUEID"),
