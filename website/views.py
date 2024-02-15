@@ -913,10 +913,13 @@ def calculateGameDayClassification(gameDayID):
                 print(f"1 {func.sum(subquery.c.WINS)}")
                 print(f"2 {func.sum(subquery.c.GAMES)}")
                 print(f"3 {((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000)}")
+                print(f"query: {query}")
 
                 result = query.all()
+                print(f"result: {result}")
 
                 for r2 in result:
+                    print(r2)
                     # Write Classification
                     classification = GameDayClassification(
                         gc_idLeague=leagueID,
