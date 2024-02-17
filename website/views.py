@@ -54,7 +54,7 @@ def managementLeague_detail(leagueID):
 @login_required
 def managementPlayers():
     players_data = Players.query.order_by(Players.pl_name).all()
-    return render_template("managementPlayers.html", user=current_user, result=players_data)
+    return render_template("managementPlayers.html", user=current_user, players=players_data)
 
 @views.route('/rankingELO', methods=['GET', 'POST'])
 @login_required
@@ -67,6 +67,11 @@ def rankingELO():
 def create_league():
     # leagues_data = League.query.order_by(League.lg_status).all()
     return render_template("create_league.html", user=current_user)
+
+@views.route('/create_player', methods=['GET', 'POST'])
+@login_required
+def create_player():
+    return render_template("create_player.html", user=current_user)
 
 @views.route('/managementGameDay_detail/<gameDayID>')
 @login_required
@@ -637,6 +642,94 @@ def submitResultsGameDay(gameDayID):
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
 
 
+@views.route('/insertPlayer', methods=['GET', 'POST'])
+@login_required
+def insertPlayer():
+    playerName = request.form.get('player_name')
+    playerEmail = request.form.get('player_email')
+    playerDOB = request.form.get('player_dob')
+    playerPhoto = request.form.get('player_photo')
+
+    
+
+    # Check if player already exists
+    player_id = 0
+    try:
+        playerInfo = db.session.execute(
+            text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND pl_email=:player_email AND pl_birthday=:player_dob"),
+            {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
+        ).fetchone()
+        if playerInfo:
+            player_id = playerInfo['pl_id']
+    except Exception as e:
+        print("Error: " + str(e))
+
+    if player_id == 0:
+        # Insert into players
+        try:
+            db.session.execute(
+                text(f"INSERT INTO tb_players (pl_name, pl_email, pl_birthday, pl_2024_ELO, pl_ranking_stat) VALUES (:player_name, :player_email, :player_dob, 1000, 'Y')"),
+                {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
+            )
+            db.session.commit()
+        except Exception as e:
+            print("Error: " + str(e))
+        
+        # Retrieve player id for photo
+        try:
+            print("reached playerinfo")
+            playerInfo = db.session.execute(
+                text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND pl_email=:player_email AND pl_birthday=:player_dob"),
+                {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
+            ).fetchone()
+            print("executed playerinfo")
+            if playerInfo:
+                print(playerInfo)
+                player_id = playerInfo[0]
+                print(f"player_id: {player_id}")
+        except Exception as e:
+            print("Error: " + str(e))
+    else:
+        # Update Player
+        try:
+            db.session.execute(
+            text(f"UPDATE tb_players SET pl_name=:player_name, pl_email=:player_email, pl_birthday=:player_dob WHERE pl_id=:player_id"),
+                {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB, "player_id": player_id}
+            )
+            db.session.commit()
+        except Exception as e:
+            print("Error: " + str(e))
+
+    # Insert photo of player
+    image = request.files['player_photo']
+    if image and player_id>0:
+        print("image is found")
+        # path = 'website/static/photos/users/'+str(player_id)+'/'
+        path = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/users/'+str(player_id)+'/'
+        pathRelative = 'static\\photos\\users\\'+str(player_id)+'\\'
+        filePath = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/users/'+str(player_id)+'/main.jpg'
+                
+        # Check if directory exists, if not, create it.
+        if os.path.exists(path) == False:
+            print('Dir path not found')
+            os.mkdir(path)
+        # Check if main.jpg exists, if exists delete it
+        if os.path.exists(filePath) == True:
+            os.remove(filePath)
+        
+        # Upload image to directory
+        fileName = 'main.jpg'
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        print(f"basedir: {basedir}")
+        print(f"filePath: {filePath}")
+        newPath = os.path.join(basedir, pathRelative, fileName)
+        # image.save(newPath)
+        image.save(filePath)
+        print("image saved")
+
+
+    return redirect(url_for('views.managementPlayers', user=current_user)) 
+
 def calculateLeagueClassification(leagueID):
     print("Enter LeagueClassification")
     # clear the league classification
@@ -793,7 +886,6 @@ def calculateLeagueClassification(leagueID):
     except Exception as e:
         print(f"Error: {e}")
         # Handle the error, maybe log it or display a message to the user
-
 
 def calculateGameDayClassification(gameDayID):
     print("Enter GameDayClassification")
@@ -1009,14 +1101,11 @@ def calculateGameDayClassification(gameDayID):
     # Commit the changes
     db.session.commit()
     print("Ended Finally")
-
-
     
 def calculate_player_age(birthdate):
         today = date.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
-
 
 def func_delete_gameday_players_upd_class(gameDayID):
     gameDay_data = GameDay.query.filter_by(gd_id=gameDayID).first()

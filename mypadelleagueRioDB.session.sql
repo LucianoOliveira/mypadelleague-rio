@@ -1,1 +1,1 @@
-select * from tb_game where gm_idGameDay=67
+select * from tb_players where pl_id>65
