@@ -99,8 +99,61 @@ def managementGameDay_detail(gameDayID):
 @login_required
 def print_page(gameDayID):
     gameDay_data = GameDay.query.filter_by(gd_id=gameDayID).first()
+    league_id = gameDay_data.gd_idLeague
+    leagueName = 'Liga'
+    gameDayName = '00/00/0000'
+    teamA = 'teamA'
+    teamB = 'teamB'
+    teamC = 'teamC'
+    teamD = 'teamD'
+    # Get Title League
+    try:
+        league_detail = db.session.execute(
+            text(f"SELECT lg_name FROM tb_league WHERE lg_id=:lg_id"),
+            {"lg_id": league_id}
+        ).fetchone()
+        leagueName = league_detail[0]
+    except Exception as e:
+        print("Error1:", e)
+
+    # Get Title GameDay
+    try:
+        results0 = db.session.execute(
+            text(f"SELECT gd_id FROM tb_gameday WHERE gd_idLeague=:lg_id ORDER BY gd_date ASC"),
+            {"lg_id": league_id},
+        ).fetchall()
+        num_jornada = 0
+        gameDayName = ""
+        for data0 in results0:
+            num_jornada += 1
+            if str(data0[0]) == gameDayID:
+                gameDayName = f"{num_jornada}ª Jornada"
+    except Exception as e:
+        print("Error2:", e)
+
+    # Get Teams
+    try:
+        teams = db.session.execute(
+            text(f"SELECT gp_namePlayer FROM tb_gameDayPlayer WHERE gp_idLeague=:lg_id AND gp_idGameDay=:gd_id ORDER BY gp_team ASC"),
+            {"lg_id": league_id, "gd_id": gameDayID},
+        ).fetchall()
+        teamA = teams[0][0] + " / " + teams[1][0]
+        teamB = teams[2][0] + " / " + teams[3][0]
+        teamC = teams[4][0] + " / " + teams[5][0]
+        teamD = teams[6][0] + " / " + teams[7][0]
+    except Exception as e:
+        print("Error3:", e)
+    games = Game.query.filter_by(gm_idGameDay=gameDayID).all()
+    # Get Games of Gameday
+    try:
+        games = db.session.execute(
+            text(f"SELECT gm_court, gm_timeStart, gm_timeEnd, gm_namePlayer_A1 || ' / ' || gm_namePlayer_A2 as teamA, gm_namePlayer_B1 || ' / ' || gm_namePlayer_B2 as teamB FROM tb_game WHERE gm_idLeague=:lg_id AND gm_idGameDay=:gd_id ORDER BY gm_date DESC, gm_timeStart ASC, gm_id ASC"),
+            {"lg_id": league_id, "gd_id": gameDayID},
+        ).fetchall()
+    except Exception as e:
+        print("Error:", e)
     # TODO - Add logic for printing page
-    return render_template('print_page.html', gameday=gameDay_data)
+    return render_template('print_page.html', gameday=gameDay_data, leagueName=leagueName, gameDayName=gameDayName, teamA=teamA, teamB=teamB, teamC=teamC, teamD=teamD, games=games)
 
 @views.route('/delete_game_day_players/<gameDayID>')
 @login_required
