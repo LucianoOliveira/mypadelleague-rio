@@ -86,7 +86,7 @@ def managementGameDay_detail(gameDayID):
     players_data = Players.query.order_by(Players.pl_name).all()
     league_id = league.lg_id
     gameDay_id = gameDayID
-    playersGameDay = GameDayPlayer.query.filter_by(gp_idGameDay=67).order_by(GameDayPlayer.gp_team.asc(), GameDayPlayer.gp_id.asc()).all()
+    playersGameDay = GameDayPlayer.query.filter_by(gp_idGameDay=gameDayID).order_by(GameDayPlayer.gp_team.asc(), GameDayPlayer.gp_id.asc()).all()
     # Organize players by team
     teams = {}
     for player in playersGameDay:
