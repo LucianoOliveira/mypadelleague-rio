@@ -5,6 +5,48 @@
 <!-- Show front page of gameday -->
 <!-- Show every detail of a player -->
 
+<!-- basic user data -->
+<div class="container-fluid">
+  <div class="col-lg-12">
+      <div class="card">
+          <div class="card-body">
+              <div class="card-title">Editar Jogador</div>
+              <hr>
+              <form action="{{ url_for('views.insertPlayer') }}" method="post" enctype="multipart/form-data">
+                  <div class="form-group">
+                      <label for="player_name">Nome</label>
+                      <input type="text" class="form-control form-control-rounded" id="player_name" placeholder="{{ player.player_name }}" name="player_name" value="{{ player.player_name }}">
+                  </div>
+                  <div class="form-group">
+                      <label for="player_email">Email</label>
+                      <input type="text" class="form-control form-control-rounded" id="player_email" placeholder="{{ player.player_email }}" name="player_email" value="{{ player.player_email }}">
+                  </div>
+                  <div class="form-group">
+                      <label for="player_dob">Data de Nascimento</label>
+                      <input type="date" class="form-control form-control-rounded" id="player_dob" placeholder="Calendario escolher data de nascimento" name="player_dob" value="{{ player.player_birthday }}">
+                  </div>
+                  <div class="form-group">
+                    <label for="player_category">Categoria</label>
+                    <select class="form-control form-control-rounded" id="player_category" name="player_category">
+                        <option value="800" {% if player.player_category|string == "800" %} selected {% endif %}>M/F 5</option>
+                        <option value="1000" {% if player.player_category|string == "1000" %} selected {% endif %}>M/F 4</option>
+                        <option value="1200" {% if player.player_category|string == "1200" %} selected {% endif %}>M/F 3</option>
+                    </select>
+                  </div>
+                
+                  <div class="form-group">
+                      <label for="player_photo">Fotografia</label>
+                      <input type="file" class="form-control form-control-rounded" id="player_photo" placeholder="Fotografia" name="player_photo">
+                  </div>
+                  <div class="form-group">
+                      <button type="submit" class="btn btn-light btn-round px-5"><i class="icon-save"></i> Editar Jogador</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+  <!-- end row -->
+
 <!-- Show every detail of a player Row -->
 <div class="row gutters-sm">
     <div class="col-md-4 mb-3">
