@@ -150,7 +150,7 @@ def print_page(gameDayID):
         ).fetchall()
     except Exception as e:
         print("Error:", e)
-    # TODO - Add logic for printing page
+    # DONE - Add logic for printing page
     return render_template('print_page.html', gameday=gameDay_data, leagueName=leagueName, gameDayName=gameDayName, teamA=teamA, teamB=teamB, teamC=teamC, teamD=teamD, games=games)
 
 @views.route('/delete_game_day_players/<gameDayID>')
@@ -479,8 +479,11 @@ def insert_game_day_players(gameDayID):
 @views.route('/player_detail/<playerID>')
 def player_detail(playerID):
     current_Player = Players.query.filter_by(pl_id=playerID).first()
+    # Define the cutoff date
+    cutoff_date = datetime.strptime('2024-01-01', '%Y-%m-%d').date()
     num_game_day_won = db.session.query(func.count()).filter(
-        (GameDay.gd_idWinner1 == playerID) | (GameDay.gd_idWinner2 == playerID)
+        ((GameDay.gd_idWinner1 == playerID) | (GameDay.gd_idWinner2 == playerID)) &
+        (GameDay.gd_date > cutoff_date)
     ).scalar()
     if num_game_day_won>0:
         num_game_day_won_text = f"Vencedor de {num_game_day_won} eventos!"
@@ -488,77 +491,24 @@ def player_detail(playerID):
         num_game_day_won_text = f"Ainda não venceu nenhum evento!"
     
     last_game_date = db.session.query(Game.gm_date).filter(
-        (Game.gm_idPlayer_A1 == playerID) |
+        ((Game.gm_idPlayer_A1 == playerID) |
         (Game.gm_idPlayer_A2 == playerID) |
         (Game.gm_idPlayer_B1 == playerID) |
-        (Game.gm_idPlayer_B2 == playerID)
+        (Game.gm_idPlayer_B2 == playerID)) & (Game.gm_date > cutoff_date)
     ).order_by(Game.gm_date.desc()).first()
-    last_game_date_string = last_game_date[0].strftime('%Y-%m-%d')
+    if last_game_date:
+        last_game_date_string = last_game_date[0].strftime('%Y-%m-%d')
+    else:
+        last_game_date_string = "Ainda não tem jogos registados!"
 
     # # All games
     try:
-        games_query = db.session.query(
-            Game.gm_timeStart,
-            Game.gm_timeEnd,
-            Game.gm_court,
-            Game.gm_namePlayer_A1,
-            Game.gm_namePlayer_A2,
-            Game.gm_result_A,
-            Game.gm_result_B,
-            Game.gm_namePlayer_B1,
-            Game.gm_namePlayer_B2,
-            Game.gm_id,
-            Game.gm_idPlayer_A1,
-            Game.gm_idPlayer_A2,
-            Game.gm_idPlayer_B1,
-            Game.gm_idPlayer_B2,
-            Game.gm_date,
-            (ELOrankingHist.el_afterRank - ELOrankingHist.el_beforeRank).label('gm_points_var')
-        ).join(
-            ELOrankingHist, ELOrankingHist.el_gm_id == Game.gm_id
-        ).filter(
-            (Game.gm_idPlayer_A1 == playerID) |
-            (Game.gm_idPlayer_A2 == playerID) |
-            (Game.gm_idPlayer_B1 == playerID) |
-            (Game.gm_idPlayer_B2 == playerID),
-            (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
-        ).order_by(
-            Game.gm_date.desc(), Game.gm_timeStart.desc()
-        ).all()
+        games_query = db.session.execute(
+            text(f"SELECT gm_timeStart, gm_timeEnd, gm_court, gm_namePlayer_A1, gm_namePlayer_A2, gm_result_A, gm_result_B, gm_namePlayer_B1, gm_namePlayer_B2, gm_id, gm_idPlayer_A1, gm_idPlayer_A2, gm_idPlayer_B1, gm_idPlayer_B2, gm_date, (el_afterRank - el_beforeRank) AS gm_points_var FROM tb_game JOIN tb_ELO_ranking_hist ON tb_ELO_ranking_hist.el_gm_id = tb_game.gm_id AND tb_ELO_ranking_hist.el_pl_id = :playerID WHERE (gm_idPlayer_A1 = :playerID OR gm_idPlayer_A2 = :playerID OR gm_idPlayer_B1 = :playerID OR gm_idPlayer_B2 = :playerID) AND (gm_result_A > 0 OR gm_result_B > 0) ORDER BY gm_date DESC, gm_timeStart DESC"),
+            {"playerID": playerID},
+        ).fetchall()
     except Exception as e:
         print(f"Error: {str(e)}")
-    
-    # All games
-    # try:
-    #     games_query = db.session.query(
-    #         Game.gm_timeStart,
-    #         Game.gm_timeEnd,
-    #         Game.gm_court,
-    #         Game.gm_namePlayer_A1,
-    #         Game.gm_namePlayer_A2,
-    #         Game.gm_result_A,
-    #         Game.gm_result_B,
-    #         Game.gm_namePlayer_B1,
-    #         Game.gm_namePlayer_B2,
-    #         Game.gm_id,
-    #         Game.gm_idPlayer_A1,
-    #         Game.gm_idPlayer_A2,
-    #         Game.gm_idPlayer_B1,
-    #         Game.gm_idPlayer_B2,
-    #         Game.gm_date,
-    #         literal_column('0').label('gm_points_var')
-    #     ).filter(
-    #         (Game.gm_idPlayer_A1 == playerID) |
-    #         (Game.gm_idPlayer_A2 == playerID) |
-    #         (Game.gm_idPlayer_B1 == playerID) |
-    #         (Game.gm_idPlayer_B2 == playerID),
-    #         (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
-    #     ).order_by(
-    #         Game.gm_date.desc(), Game.gm_timeStart.desc()
-    #     ).all()
-    # except Exception as e:
-    #     print(f"Error1: {str(e)}")
-
 
     #Gem games won, lost and totals
     try:
@@ -598,7 +548,8 @@ def player_detail(playerID):
             (Game.gm_idPlayer_A2 == playerID) |
             (Game.gm_idPlayer_B1 == playerID) |
             (Game.gm_idPlayer_B2 == playerID),
-            (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
+            (Game.gm_result_A > 0) | (Game.gm_result_B > 0),
+            (Game.gm_date > cutoff_date)
         ).subquery()
 
         best_teammate = db.session.query(
@@ -616,6 +567,10 @@ def player_detail(playerID):
             desc(func.sum(subquery.c.won) / func.count(subquery.c.teamMate)),
             desc(func.sum(subquery.c.won))
         ).limit(1).first()
+        if best_teammate:
+            pass
+        else:
+            best_teammate=['',0,0,0]
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -624,10 +579,13 @@ def player_detail(playerID):
     # Worst Nightmare
     try:
         worst_nightmare = db.session.execute(
-            text(f"SELECT D.oponent as oponent, D.playerName as playerName, D.losses as losses, D.games as games, D.losses / D.games * 100 as lostPerc FROM (SELECT C.oponent as oponent, C.losses as losses, (SELECT pl_name FROM tb_players WHERE pl_id=C.oponent) as playerName, (SELECT count() FROM tb_game WHERE (((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND (gm_idPlayer_B1=C.oponent OR gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_idPlayer_A1=C.oponent OR gm_idPlayer_A2=C.oponent))) AND (gm_result_A>0 OR gm_result_B>0)) as games FROM (SELECT B.oponent as oponent, B.losses as losses FROM (SELECT A.oponent, count() as losses FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) A GROUP BY A.oponent ORDER BY count(*) DESC) B) C) D ORDER BY D.losses / D.games * 100 DESC, D.losses DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"SELECT D.oponent as oponent, D.playerName as playerName, D.losses as losses, D.games as games, ((D.losses * 100.0) / D.games) as lostPerc FROM (SELECT C.oponent as oponent, C.losses as losses, (SELECT pl_name FROM tb_players WHERE pl_id=C.oponent) as playerName, (SELECT count() FROM tb_game WHERE (((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND (gm_idPlayer_B1=C.oponent OR gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_idPlayer_A1=C.oponent OR gm_idPlayer_A2=C.oponent))) AND (gm_result_A>0 OR gm_result_B>0) AND (gm_date > :cutoff_date)) as games FROM (SELECT B.oponent as oponent, B.losses as losses FROM (SELECT A.oponent, count() as losses FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B AND gm_date > :cutoff_date) A GROUP BY A.oponent ORDER BY count(*) DESC) B) C) D ORDER BY ((D.losses * 100.0) / D.games) DESC, D.losses DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
-
+        if worst_nightmare:
+            pass
+        else:
+            worst_nightmare=['','',0,0,0]
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -636,19 +594,28 @@ def player_detail(playerID):
     #Best Opponent
     try:
         best_opponent = db.session.execute(
-            text(f"SELECT E.oponent as oponent, E.playerName as playerName, E.victories as victories, E.games as games, E.victPerc FROM (SELECT D.oponent as oponent, D.playerName as playerName, D.victories as victories, D.games as games, (D.victories/D.games)*100 as victPerc FROM (SELECT C.oponent as oponent, C.victories as victories, (SELECT pl_name from tb_players where pl_id=C.oponent) as playerName, (SELECT count() from tb_game where (((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) and (gm_idPlayer_B1=C.oponent or gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) and (gm_idPlayer_A1=C.oponent or gm_idPlayer_A2=C.oponent))) and (gm_result_A>0 or gm_result_B>0)) as games FROM ( SELECT B.oponent as oponent, B.victories as victories FROM (SELECT A.oponent, count(*) as victories FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B)) A group by A.oponent) B order by B.victories DESC) C) D inner join tb_players on pl_id=D.oponent where pl_ranking_stat='Y') E ORDER BY E.victPerc DESC, E.victories DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"SELECT E.oponent as oponent, E.playerName as playerName, E.victories as victories, E.games as games, E.victPerc FROM (SELECT D.oponent as oponent, D.playerName as playerName, D.victories as victories, D.games as games, ((D.victories*100)/D.games) as victPerc FROM (SELECT C.oponent as oponent, C.victories as victories, (SELECT pl_name from tb_players where pl_id=C.oponent) as playerName, (SELECT count() from tb_game where (((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) and (gm_idPlayer_B1=C.oponent or gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) and (gm_idPlayer_A1=C.oponent or gm_idPlayer_A2=C.oponent))) and (gm_result_A>0 or gm_result_B>0) and (gm_date > :cutoff_date)) as games FROM ( SELECT B.oponent as oponent, B.victories as victories FROM (SELECT A.oponent, count(*) as victories FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) and gm_date > :cutoff_date) A group by A.oponent) B order by B.victories DESC) C) D inner join tb_players on pl_id=D.oponent where pl_ranking_stat='Y') E ORDER BY E.victPerc DESC, E.victories DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
-
+        if best_opponent:
+            pass
+        else:
+            best_opponent=['','',0,0,0]
     except Exception as e:
         print(f"Error: {str(e)}")
 
     #Worst Teammate
     try:
         worst_teammate = db.session.execute(
-            text(f"WITH PlayerGames AS ( SELECT CASE WHEN gm_idPlayer_A1=:playerID THEN gm_idPlayer_A2 WHEN gm_idPlayer_A2=:playerID THEN gm_idPlayer_A1 WHEN gm_idPlayer_B1=:playerID THEN gm_idPlayer_B2 WHEN gm_idPlayer_B2=:playerID THEN gm_idPlayer_B1 END AS teamMate, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_B>gm_result_A) THEN 1 ELSE 0 END AS won, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_B>gm_result_A) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) THEN 1 ELSE 0 END AS lost FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID OR gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_result_A>0 OR gm_result_B>0) ) SELECT tb_players.pl_name as pl_name, lostPerc, lost, totalgames FROM ( SELECT teamMate, SUM(won) AS won, SUM(lost) AS lost, COUNT() AS totalgames, SUM(won) / COUNT() AS winPerc, SUM(lost) / COUNT(*) AS lostPerc FROM PlayerGames GROUP BY teamMate ) AS B INNER JOIN tb_players ON tb_players.pl_id = B.teamMate WHERE tb_players.pl_ranking_stat = 'Y' ORDER BY B.lostPerc DESC, B.lost DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"WITH PlayerGames AS ( SELECT CASE WHEN gm_idPlayer_A1=:playerID THEN gm_idPlayer_A2 WHEN gm_idPlayer_A2=:playerID THEN gm_idPlayer_A1 WHEN gm_idPlayer_B1=:playerID THEN gm_idPlayer_B2 WHEN gm_idPlayer_B2=:playerID THEN gm_idPlayer_B1 END AS teamMate, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_B>gm_result_A) THEN 1 ELSE 0 END AS won, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_B>gm_result_A) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) THEN 1 ELSE 0 END AS lost FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID OR gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_result_A>0 OR gm_result_B>0) AND (gm_date > :cutoff_date) ) SELECT tb_players.pl_name as pl_name, lostPerc, lost, totalgames FROM ( SELECT teamMate, SUM(won) AS won, SUM(lost) AS lost, COUNT() AS totalgames, SUM(won) / COUNT() AS winPerc, ((SUM(lost)*100) / COUNT(*)) AS lostPerc FROM PlayerGames GROUP BY teamMate ) AS B INNER JOIN tb_players ON tb_players.pl_id = B.teamMate WHERE tb_players.pl_ranking_stat = 'Y' ORDER BY B.lostPerc DESC, B.lost DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
+        if worst_teammate:
+            pass
+        else:
+            worst_teammate=['',0,0,0]
+
+        
     except Exception as e:
         print(f"Error: {str(e)}")
 
@@ -668,7 +635,7 @@ def player_detail(playerID):
     except Exception as e:
         print(f"Error: {str(e)}")
 
-    # TODO - Get data from games to complete user data
+    # DONE - Get data from games to complete user data
     player_data = {
         "player_id": current_Player.pl_id,
         "player_name": current_Player.pl_name,
@@ -682,7 +649,7 @@ def player_detail(playerID):
         "best_teammate_win_percentage": "{:.2f}".format(best_teammate[1] * 100),
         "best_teammate_total_games": best_teammate[3],
         "worst_teammate_name": str(worst_teammate[0]),
-        "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]* 100),
+        "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]),
         "worst_teammate_total_games": worst_teammate[3],
         "worst_nightmare_name": str(worst_nightmare[1]) if worst_nightmare else "",
         "worst_nightmare_lost_percentage": "{:.2f}".format(worst_nightmare[4]) if worst_nightmare else 0,
@@ -697,8 +664,11 @@ def player_detail(playerID):
 @login_required
 def player_edit(playerID):
     current_Player = Players.query.filter_by(pl_id=playerID).first()
+    # Define the cutoff date
+    cutoff_date = datetime.strptime('2024-01-01', '%Y-%m-%d').date()
     num_game_day_won = db.session.query(func.count()).filter(
-        (GameDay.gd_idWinner1 == playerID) | (GameDay.gd_idWinner2 == playerID)
+        ((GameDay.gd_idWinner1 == playerID) | (GameDay.gd_idWinner2 == playerID)) &
+        (GameDay.gd_date > cutoff_date)
     ).scalar()
     if num_game_day_won>0:
         num_game_day_won_text = f"Vencedor de {num_game_day_won} eventos!"
@@ -706,77 +676,24 @@ def player_edit(playerID):
         num_game_day_won_text = f"Ainda não venceu nenhum evento!"
     
     last_game_date = db.session.query(Game.gm_date).filter(
-        (Game.gm_idPlayer_A1 == playerID) |
+        ((Game.gm_idPlayer_A1 == playerID) |
         (Game.gm_idPlayer_A2 == playerID) |
         (Game.gm_idPlayer_B1 == playerID) |
-        (Game.gm_idPlayer_B2 == playerID)
+        (Game.gm_idPlayer_B2 == playerID)) & (Game.gm_date > cutoff_date)
     ).order_by(Game.gm_date.desc()).first()
-    last_game_date_string = last_game_date[0].strftime('%Y-%m-%d')
+    if last_game_date:
+        last_game_date_string = last_game_date[0].strftime('%Y-%m-%d')
+    else:
+        last_game_date_string = "Ainda não tem jogos registados!"
 
     # # All games
-    # try:
-    #     games_query = db.session.query(
-    #         Game.gm_timeStart,
-    #         Game.gm_timeEnd,
-    #         Game.gm_court,
-    #         Game.gm_namePlayer_A1,
-    #         Game.gm_namePlayer_A2,
-    #         Game.gm_result_A,
-    #         Game.gm_result_B,
-    #         Game.gm_namePlayer_B1,
-    #         Game.gm_namePlayer_B2,
-    #         Game.gm_id,
-    #         Game.gm_idPlayer_A1,
-    #         Game.gm_idPlayer_A2,
-    #         Game.gm_idPlayer_B1,
-    #         Game.gm_idPlayer_B2,
-    #         Game.gm_date,
-    #         (ELOrankingHist.el_afterRank - ELOrankingHist.el_beforeRank).label('gm_points_var')
-    #     ).join(
-    #         ELOrankingHist, ELOrankingHist.el_gm_id == Game.gm_id
-    #     ).filter(
-    #         (Game.gm_idPlayer_A1 == playerID) |
-    #         (Game.gm_idPlayer_A2 == playerID) |
-    #         (Game.gm_idPlayer_B1 == playerID) |
-    #         (Game.gm_idPlayer_B2 == playerID),
-    #         (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
-    #     ).order_by(
-    #         Game.gm_date.desc(), Game.gm_timeStart.desc()
-    #     ).all()
-    # except Exception as e:
-    #     print(f"Error: {str(e)}")
-    
-    # All games
     try:
-        games_query = db.session.query(
-            Game.gm_timeStart,
-            Game.gm_timeEnd,
-            Game.gm_court,
-            Game.gm_namePlayer_A1,
-            Game.gm_namePlayer_A2,
-            Game.gm_result_A,
-            Game.gm_result_B,
-            Game.gm_namePlayer_B1,
-            Game.gm_namePlayer_B2,
-            Game.gm_id,
-            Game.gm_idPlayer_A1,
-            Game.gm_idPlayer_A2,
-            Game.gm_idPlayer_B1,
-            Game.gm_idPlayer_B2,
-            Game.gm_date,
-            literal_column('0').label('gm_points_var')
-        ).filter(
-            (Game.gm_idPlayer_A1 == playerID) |
-            (Game.gm_idPlayer_A2 == playerID) |
-            (Game.gm_idPlayer_B1 == playerID) |
-            (Game.gm_idPlayer_B2 == playerID),
-            (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
-        ).order_by(
-            Game.gm_date.desc(), Game.gm_timeStart.desc()
-        ).all()
+        games_query = db.session.execute(
+            text(f"SELECT gm_timeStart, gm_timeEnd, gm_court, gm_namePlayer_A1, gm_namePlayer_A2, gm_result_A, gm_result_B, gm_namePlayer_B1, gm_namePlayer_B2, gm_id, gm_idPlayer_A1, gm_idPlayer_A2, gm_idPlayer_B1, gm_idPlayer_B2, gm_date, (el_afterRank - el_beforeRank) AS gm_points_var FROM tb_game JOIN tb_ELO_ranking_hist ON tb_ELO_ranking_hist.el_gm_id = tb_game.gm_id AND tb_ELO_ranking_hist.el_pl_id = :playerID WHERE (gm_idPlayer_A1 = :playerID OR gm_idPlayer_A2 = :playerID OR gm_idPlayer_B1 = :playerID OR gm_idPlayer_B2 = :playerID) AND (gm_result_A > 0 OR gm_result_B > 0) ORDER BY gm_date DESC, gm_timeStart DESC"),
+            {"playerID": playerID},
+        ).fetchall()
     except Exception as e:
-        print(f"Error1: {str(e)}")
-
+        print(f"Error: {str(e)}")
 
     #Gem games won, lost and totals
     try:
@@ -816,7 +733,8 @@ def player_edit(playerID):
             (Game.gm_idPlayer_A2 == playerID) |
             (Game.gm_idPlayer_B1 == playerID) |
             (Game.gm_idPlayer_B2 == playerID),
-            (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
+            (Game.gm_result_A > 0) | (Game.gm_result_B > 0),
+            (Game.gm_date > cutoff_date)
         ).subquery()
 
         best_teammate = db.session.query(
@@ -834,6 +752,10 @@ def player_edit(playerID):
             desc(func.sum(subquery.c.won) / func.count(subquery.c.teamMate)),
             desc(func.sum(subquery.c.won))
         ).limit(1).first()
+        if best_teammate:
+            pass
+        else:
+            best_teammate=['',0,0,0]
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -842,10 +764,13 @@ def player_edit(playerID):
     # Worst Nightmare
     try:
         worst_nightmare = db.session.execute(
-            text(f"SELECT D.oponent as oponent, D.playerName as playerName, D.losses as losses, D.games as games, D.losses / D.games * 100 as lostPerc FROM (SELECT C.oponent as oponent, C.losses as losses, (SELECT pl_name FROM tb_players WHERE pl_id=C.oponent) as playerName, (SELECT count() FROM tb_game WHERE (((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND (gm_idPlayer_B1=C.oponent OR gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_idPlayer_A1=C.oponent OR gm_idPlayer_A2=C.oponent))) AND (gm_result_A>0 OR gm_result_B>0)) as games FROM (SELECT B.oponent as oponent, B.losses as losses FROM (SELECT A.oponent, count() as losses FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) A GROUP BY A.oponent ORDER BY count(*) DESC) B) C) D ORDER BY D.losses / D.games * 100 DESC, D.losses DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"SELECT D.oponent as oponent, D.playerName as playerName, D.losses as losses, D.games as games, ((D.losses * 100.0) / D.games) as lostPerc FROM (SELECT C.oponent as oponent, C.losses as losses, (SELECT pl_name FROM tb_players WHERE pl_id=C.oponent) as playerName, (SELECT count() FROM tb_game WHERE (((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND (gm_idPlayer_B1=C.oponent OR gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_idPlayer_A1=C.oponent OR gm_idPlayer_A2=C.oponent))) AND (gm_result_A>0 OR gm_result_B>0) AND (gm_date > :cutoff_date)) as games FROM (SELECT B.oponent as oponent, B.losses as losses FROM (SELECT A.oponent, count() as losses FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A<gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B AND gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game WHERE (gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B AND gm_date > :cutoff_date) A GROUP BY A.oponent ORDER BY count(*) DESC) B) C) D ORDER BY ((D.losses * 100.0) / D.games) DESC, D.losses DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
-
+        if worst_nightmare:
+            pass
+        else:
+            worst_nightmare=['','',0,0,0]
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -854,19 +779,28 @@ def player_edit(playerID):
     #Best Opponent
     try:
         best_opponent = db.session.execute(
-            text(f"SELECT E.oponent as oponent, E.playerName as playerName, E.victories as victories, E.games as games, E.victPerc FROM (SELECT D.oponent as oponent, D.playerName as playerName, D.victories as victories, D.games as games, (D.victories/D.games)*100 as victPerc FROM (SELECT C.oponent as oponent, C.victories as victories, (SELECT pl_name from tb_players where pl_id=C.oponent) as playerName, (SELECT count() from tb_game where (((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) and (gm_idPlayer_B1=C.oponent or gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) and (gm_idPlayer_A1=C.oponent or gm_idPlayer_A2=C.oponent))) and (gm_result_A>0 or gm_result_B>0)) as games FROM ( SELECT B.oponent as oponent, B.victories as victories FROM (SELECT A.oponent, count(*) as victories FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B)) A group by A.oponent) B order by B.victories DESC) C) D inner join tb_players on pl_id=D.oponent where pl_ranking_stat='Y') E ORDER BY E.victPerc DESC, E.victories DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"SELECT E.oponent as oponent, E.playerName as playerName, E.victories as victories, E.games as games, E.victPerc FROM (SELECT D.oponent as oponent, D.playerName as playerName, D.victories as victories, D.games as games, ((D.victories*100)/D.games) as victPerc FROM (SELECT C.oponent as oponent, C.victories as victories, (SELECT pl_name from tb_players where pl_id=C.oponent) as playerName, (SELECT count() from tb_game where (((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) and (gm_idPlayer_B1=C.oponent or gm_idPlayer_B2=C.oponent)) OR ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) and (gm_idPlayer_A1=C.oponent or gm_idPlayer_A2=C.oponent))) and (gm_result_A>0 or gm_result_B>0) and (gm_date > :cutoff_date)) as games FROM ( SELECT B.oponent as oponent, B.victories as victories FROM (SELECT A.oponent, count(*) as victories FROM (SELECT gm_idPlayer_B1 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_B2 as oponent FROM tb_game where ((gm_idPlayer_A1=:playerID or gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A1 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) and gm_date > :cutoff_date UNION ALL SELECT gm_idPlayer_A2 as oponent FROM tb_game where ((gm_idPlayer_B1=:playerID or gm_idPlayer_B2=:playerID) AND gm_result_A<gm_result_B) and gm_date > :cutoff_date) A group by A.oponent) B order by B.victories DESC) C) D inner join tb_players on pl_id=D.oponent where pl_ranking_stat='Y') E ORDER BY E.victPerc DESC, E.victories DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
-
+        if best_opponent:
+            pass
+        else:
+            best_opponent=['','',0,0,0]
     except Exception as e:
         print(f"Error: {str(e)}")
 
     #Worst Teammate
     try:
         worst_teammate = db.session.execute(
-            text(f"WITH PlayerGames AS ( SELECT CASE WHEN gm_idPlayer_A1=:playerID THEN gm_idPlayer_A2 WHEN gm_idPlayer_A2=:playerID THEN gm_idPlayer_A1 WHEN gm_idPlayer_B1=:playerID THEN gm_idPlayer_B2 WHEN gm_idPlayer_B2=:playerID THEN gm_idPlayer_B1 END AS teamMate, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_B>gm_result_A) THEN 1 ELSE 0 END AS won, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_B>gm_result_A) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) THEN 1 ELSE 0 END AS lost FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID OR gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_result_A>0 OR gm_result_B>0) ) SELECT tb_players.pl_name as pl_name, lostPerc, lost, totalgames FROM ( SELECT teamMate, SUM(won) AS won, SUM(lost) AS lost, COUNT() AS totalgames, SUM(won) / COUNT() AS winPerc, SUM(lost) / COUNT(*) AS lostPerc FROM PlayerGames GROUP BY teamMate ) AS B INNER JOIN tb_players ON tb_players.pl_id = B.teamMate WHERE tb_players.pl_ranking_stat = 'Y' ORDER BY B.lostPerc DESC, B.lost DESC LIMIT 1"),
-            {"playerID": playerID}
+            text(f"WITH PlayerGames AS ( SELECT CASE WHEN gm_idPlayer_A1=:playerID THEN gm_idPlayer_A2 WHEN gm_idPlayer_A2=:playerID THEN gm_idPlayer_A1 WHEN gm_idPlayer_B1=:playerID THEN gm_idPlayer_B2 WHEN gm_idPlayer_B2=:playerID THEN gm_idPlayer_B1 END AS teamMate, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_A>gm_result_B) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_B>gm_result_A) THEN 1 ELSE 0 END AS won, CASE WHEN ((gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID) AND gm_result_B>gm_result_A) THEN 1 WHEN ((gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND gm_result_A>gm_result_B) THEN 1 ELSE 0 END AS lost FROM tb_game WHERE (gm_idPlayer_A1=:playerID OR gm_idPlayer_A2=:playerID OR gm_idPlayer_B1=:playerID OR gm_idPlayer_B2=:playerID) AND (gm_result_A>0 OR gm_result_B>0) AND (gm_date > :cutoff_date) ) SELECT tb_players.pl_name as pl_name, lostPerc, lost, totalgames FROM ( SELECT teamMate, SUM(won) AS won, SUM(lost) AS lost, COUNT() AS totalgames, SUM(won) / COUNT() AS winPerc, ((SUM(lost)*100) / COUNT(*)) AS lostPerc FROM PlayerGames GROUP BY teamMate ) AS B INNER JOIN tb_players ON tb_players.pl_id = B.teamMate WHERE tb_players.pl_ranking_stat = 'Y' ORDER BY B.lostPerc DESC, B.lost DESC LIMIT 1"),
+            {"playerID": playerID, "cutoff_date": cutoff_date}
         ).fetchone()
+        if worst_teammate:
+            pass
+        else:
+            worst_teammate=['',0,0,0]
+
+        
     except Exception as e:
         print(f"Error: {str(e)}")
 
@@ -886,7 +820,7 @@ def player_edit(playerID):
     except Exception as e:
         print(f"Error: {str(e)}")
 
-    # TODO - Get data from games to complete user data
+    # DONE - Get data from games to complete user data
     player_data = {
         "player_id": current_Player.pl_id,
         "player_name": current_Player.pl_name,
@@ -944,7 +878,6 @@ def display_league_image_small(leagueID):
 def submitResultsGameDay(gameDayID):
     gameDay_data = GameDay.query.filter_by(gd_id=gameDayID).first()
     league_id = gameDay_data.gd_idLeague
-    # league_id = request.form.get('leagueId')
     #Get all ids of that gameday
     result = Game.query.filter_by(gm_idGameDay=gameDayID).all()
     if result:
@@ -2094,7 +2027,6 @@ def func_create_games_for_gameday(gameDayID):
             
         else:
             necessary_games = 0
-
 
 def calculate_ELO_full():
     # Delete all rows from tb_ELO_ranking

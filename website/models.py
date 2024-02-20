@@ -21,8 +21,8 @@ class ELOranking(db.Model):
 
 class ELOrankingHist(db.Model):
     __tablename__ = 'tb_ELO_ranking_hist'
-    el_gm_id = db.Column(db.Integer, primary_key=True)
-    el_pl_id = db.Column(db.Integer, nullable=False)
+    el_gm_id = db.Column(db.Integer, nullable=False, primary_key=True)  # Composite primary key
+    el_pl_id = db.Column(db.Integer, nullable=False, primary_key=True)  # Composite primary key
     el_date = db.Column(db.Date)
     el_startTime = db.Column(db.Time)
     el_pl_id_teammate = db.Column(db.Integer, nullable=False)
@@ -35,6 +35,11 @@ class ELOrankingHist(db.Model):
     el_result_op = db.Column(db.Integer, nullable=False)
     el_beforeRank = db.Column(db.Float)
     el_afterRank = db.Column(db.Float)
+
+    # Composite primary key constraint
+    __table_args__ = (
+        db.PrimaryKeyConstraint('el_gm_id', 'el_pl_id'),
+    )
 
     def __repr__(self):
         return f"<ELOrankingHist(el_gm_id={self.el_gm_id}, el_pl_id={self.el_pl_id}, ...)>"
