@@ -554,7 +554,7 @@ def player_detail(playerID):
 
         best_teammate = db.session.query(
             Players.pl_name,
-            (func.coalesce(func.sum(subquery.c.won) / func.count(subquery.c.teamMate),0)).label('winPerc'),
+            (func.coalesce(((func.sum(subquery.c.won)*100) / func.count(subquery.c.teamMate)),0)).label('winPerc'),
             func.sum(subquery.c.won).label('won'),
             func.count(subquery.c.teamMate).label('totalgames')
         ).join(
@@ -647,7 +647,7 @@ def player_detail(playerID):
         "games_won": total_games[0],
         "total_games": total_games[1],
         "best_teammate_name": str(best_teammate[0]),
-        "best_teammate_win_percentage": "{:.2f}".format(best_teammate[1] * 100),
+        "best_teammate_win_percentage": "{:.2f}".format(best_teammate[1] ),
         "best_teammate_total_games": best_teammate[3],
         "worst_teammate_name": str(worst_teammate[0]),
         "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]),
@@ -740,7 +740,7 @@ def player_edit(playerID):
 
         best_teammate = db.session.query(
             Players.pl_name,
-            (func.sum(subquery.c.won) / func.count(subquery.c.teamMate)).label('winPerc'),
+            (func.coalesce(((func.sum(subquery.c.won)*100) / func.count(subquery.c.teamMate)),0)).label('winPerc'),
             func.sum(subquery.c.won).label('won'),
             func.count(subquery.c.teamMate).label('totalgames')
         ).join(
@@ -833,7 +833,7 @@ def player_edit(playerID):
         "games_won": total_games[0],
         "total_games": total_games[1],
         "best_teammate_name": str(best_teammate[0]),
-        "best_teammate_win_percentage": "{:.2f}".format(best_teammate[1] * 100),
+        "best_teammate_win_percentage": "{:.2f}".format(best_teammate[1] ),
         "best_teammate_total_games": best_teammate[3],
         "worst_teammate_name": str(worst_teammate[0]),
         "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]* 100),
