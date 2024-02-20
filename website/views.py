@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, current_user
 from .models import Players, League, GameDay, LeagueClassification, Game, GameDayClassification, GameDayPlayer, ELOranking, ELOrankingHist
 from . import db
-import json, os
+import json, os, threading
 from datetime import datetime, date, timedelta
 from sqlalchemy import and_, func, cast, String, text, desc, case, literal_column
 
@@ -59,7 +59,7 @@ def managementPlayers():
 @views.route('/rankingELO')
 def rankingELO():
     # Calcular Elo completo
-    calculate_ELO_full()
+    # calculate_ELO_full()
     results = db.session.execute(
         text(f"SELECT pl_id, pl_name, ROUND(pl_rankingNow, 2) as pl_rankingNow, ROUND(pl_totalRankingOpo, 2) as pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames FROM tb_ELO_ranking  order by pl_rankingNow desc"),
     ).fetchall()   
@@ -911,6 +911,8 @@ def submitResultsGameDay(gameDayID):
 
         calculateGameDayClassification(gameDayID)
         calculateLeagueClassification(league_id)
+        # calculate_ELO_full()
+        calculate_ELO_full_background()
 
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
 
@@ -2239,3 +2241,12 @@ def calculate_ELO_full():
 
     except Exception as e:
         print("Error99:", e)
+
+def calculate_ELO_full_background():
+    # Wrap the function you want to execute in the background
+    calculate_ELO_full()
+
+def start_background_task():
+    # Start a background thread to execute the task
+    background_thread = threading.Thread(target=calculate_ELO_full_background)
+    background_thread.start()
