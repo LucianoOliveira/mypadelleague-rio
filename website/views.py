@@ -507,6 +507,8 @@ def player_detail(playerID):
             text(f"SELECT gm_timeStart, gm_timeEnd, gm_court, gm_namePlayer_A1, gm_namePlayer_A2, gm_result_A, gm_result_B, gm_namePlayer_B1, gm_namePlayer_B2, gm_id, gm_idPlayer_A1, gm_idPlayer_A2, gm_idPlayer_B1, gm_idPlayer_B2, gm_date, (el_afterRank - el_beforeRank) AS gm_points_var FROM tb_game JOIN tb_ELO_ranking_hist ON tb_ELO_ranking_hist.el_gm_id = tb_game.gm_id AND tb_ELO_ranking_hist.el_pl_id = :playerID WHERE (gm_idPlayer_A1 = :playerID OR gm_idPlayer_A2 = :playerID OR gm_idPlayer_B1 = :playerID OR gm_idPlayer_B2 = :playerID) AND (gm_result_A > 0 OR gm_result_B > 0) ORDER BY gm_date DESC, gm_timeStart DESC"),
             {"playerID": playerID},
         ).fetchall()
+        if games_query:
+            print(f"Games: {games_query}")
     except Exception as e:
         print(f"Error: {str(e)}")
 
