@@ -21,7 +21,7 @@ class ELOranking(db.Model):
 
 class ELOrankingHist(db.Model):
     __tablename__ = 'tb_ELO_ranking_hist'
-    el_gm_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    el_gm_id = db.Column(db.Integer, primary_key=True)
     el_pl_id = db.Column(db.Integer, nullable=False)
     el_date = db.Column(db.Date)
     el_startTime = db.Column(db.Time)
@@ -35,6 +35,9 @@ class ELOrankingHist(db.Model):
     el_result_op = db.Column(db.Integer, nullable=False)
     el_beforeRank = db.Column(db.Float)
     el_afterRank = db.Column(db.Float)
+
+    def __repr__(self):
+        return f"<ELOrankingHist(el_gm_id={self.el_gm_id}, el_pl_id={self.el_pl_id}, ...)>"
 
 class Game(db.Model):
     __tablename__ = 'tb_game'

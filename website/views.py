@@ -56,18 +56,14 @@ def managementPlayers():
     players_data = Players.query.order_by(Players.pl_name).all()
     return render_template("managementPlayers.html", user=current_user, players=players_data)
 
-@views.route('/rankingELO', methods=['GET', 'POST'])
-@login_required
+@views.route('/rankingELO')
 def rankingELO():
     # Calcular Elo completo
-    print("before calculate")
     calculate_ELO_full()
-    print("after calculate")
     results = db.session.execute(
-        text(f"SELECT pl_id, pl_name, ROUND(pl_rankingNow, 2) as pl_rankingNow, ROUND(pl_totalRankingOpo, 2) as pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames FROM tb_ELO_ranking  order by pl_rankingNow desc")
-    )
-    print(f"results: {results}")
-    players_data = Players.query.order_by(Players.pl_name).all()
+        text(f"SELECT pl_id, pl_name, ROUND(pl_rankingNow, 2) as pl_rankingNow, ROUND(pl_totalRankingOpo, 2) as pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames FROM tb_ELO_ranking  order by pl_rankingNow desc"),
+    ).fetchall()   
+    
     return render_template("rankingELO.html", user=current_user, result=results)
 
 @views.route('/create_league', methods=['GET', 'POST'])
@@ -500,39 +496,6 @@ def player_detail(playerID):
     last_game_date_string = last_game_date[0].strftime('%Y-%m-%d')
 
     # # All games
-    # try:
-    #     games_query = db.session.query(
-    #         Game.gm_timeStart,
-    #         Game.gm_timeEnd,
-    #         Game.gm_court,
-    #         Game.gm_namePlayer_A1,
-    #         Game.gm_namePlayer_A2,
-    #         Game.gm_result_A,
-    #         Game.gm_result_B,
-    #         Game.gm_namePlayer_B1,
-    #         Game.gm_namePlayer_B2,
-    #         Game.gm_id,
-    #         Game.gm_idPlayer_A1,
-    #         Game.gm_idPlayer_A2,
-    #         Game.gm_idPlayer_B1,
-    #         Game.gm_idPlayer_B2,
-    #         Game.gm_date,
-    #         (ELOrankingHist.el_afterRank - ELOrankingHist.el_beforeRank).label('gm_points_var')
-    #     ).join(
-    #         ELOrankingHist, ELOrankingHist.el_gm_id == Game.gm_id
-    #     ).filter(
-    #         (Game.gm_idPlayer_A1 == playerID) |
-    #         (Game.gm_idPlayer_A2 == playerID) |
-    #         (Game.gm_idPlayer_B1 == playerID) |
-    #         (Game.gm_idPlayer_B2 == playerID),
-    #         (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
-    #     ).order_by(
-    #         Game.gm_date.desc(), Game.gm_timeStart.desc()
-    #     ).all()
-    # except Exception as e:
-    #     print(f"Error: {str(e)}")
-    
-    # All games
     try:
         games_query = db.session.query(
             Game.gm_timeStart,
@@ -550,7 +513,9 @@ def player_detail(playerID):
             Game.gm_idPlayer_B1,
             Game.gm_idPlayer_B2,
             Game.gm_date,
-            literal_column('0').label('gm_points_var')
+            (ELOrankingHist.el_afterRank - ELOrankingHist.el_beforeRank).label('gm_points_var')
+        ).join(
+            ELOrankingHist, ELOrankingHist.el_gm_id == Game.gm_id
         ).filter(
             (Game.gm_idPlayer_A1 == playerID) |
             (Game.gm_idPlayer_A2 == playerID) |
@@ -561,7 +526,38 @@ def player_detail(playerID):
             Game.gm_date.desc(), Game.gm_timeStart.desc()
         ).all()
     except Exception as e:
-        print(f"Error1: {str(e)}")
+        print(f"Error: {str(e)}")
+    
+    # All games
+    # try:
+    #     games_query = db.session.query(
+    #         Game.gm_timeStart,
+    #         Game.gm_timeEnd,
+    #         Game.gm_court,
+    #         Game.gm_namePlayer_A1,
+    #         Game.gm_namePlayer_A2,
+    #         Game.gm_result_A,
+    #         Game.gm_result_B,
+    #         Game.gm_namePlayer_B1,
+    #         Game.gm_namePlayer_B2,
+    #         Game.gm_id,
+    #         Game.gm_idPlayer_A1,
+    #         Game.gm_idPlayer_A2,
+    #         Game.gm_idPlayer_B1,
+    #         Game.gm_idPlayer_B2,
+    #         Game.gm_date,
+    #         literal_column('0').label('gm_points_var')
+    #     ).filter(
+    #         (Game.gm_idPlayer_A1 == playerID) |
+    #         (Game.gm_idPlayer_A2 == playerID) |
+    #         (Game.gm_idPlayer_B1 == playerID) |
+    #         (Game.gm_idPlayer_B2 == playerID),
+    #         (Game.gm_result_A > 0) | (Game.gm_result_B > 0)
+    #     ).order_by(
+    #         Game.gm_date.desc(), Game.gm_timeStart.desc()
+    #     ).all()
+    # except Exception as e:
+    #     print(f"Error1: {str(e)}")
 
 
     #Gem games won, lost and totals
@@ -688,9 +684,9 @@ def player_detail(playerID):
         "worst_teammate_name": str(worst_teammate[0]),
         "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]* 100),
         "worst_teammate_total_games": worst_teammate[3],
-        "worst_nightmare_name": str(worst_nightmare[1]),
-        "worst_nightmare_lost_percentage": "{:.2f}".format(worst_nightmare[4]),
-        "worst_nightmare_games": worst_nightmare[3],
+        "worst_nightmare_name": str(worst_nightmare[1]) if worst_nightmare else "",
+        "worst_nightmare_lost_percentage": "{:.2f}".format(worst_nightmare[4]) if worst_nightmare else 0,
+        "worst_nightmare_games": worst_nightmare[3] if worst_nightmare else 0,
         "best_opponent_name": str(best_opponent[1]),
         "best_opponent_victory_percentage": "{:.2f}".format(best_opponent[4]),
         "best_opponent_games": best_opponent[3],
@@ -907,9 +903,9 @@ def player_edit(playerID):
         "worst_teammate_name": str(worst_teammate[0]),
         "worst_teammate_lost_percentage": "{:.2f}".format(worst_teammate[1]* 100),
         "worst_teammate_total_games": worst_teammate[3],
-        "worst_nightmare_name": str(worst_nightmare[1]),
-        "worst_nightmare_lost_percentage": "{:.2f}".format(worst_nightmare[4]),
-        "worst_nightmare_games": worst_nightmare[3],
+        "worst_nightmare_name": str(worst_nightmare[1]) if worst_nightmare else "",
+        "worst_nightmare_lost_percentage": "{:.2f}".format(worst_nightmare[4]) if worst_nightmare else 0,
+        "worst_nightmare_games": worst_nightmare[3] if worst_nightmare else 0,
         "best_opponent_name": str(best_opponent[1]),
         "best_opponent_victory_percentage": "{:.2f}".format(best_opponent[4]),
         "best_opponent_games": best_opponent[3],
@@ -1004,7 +1000,8 @@ def insertPlayer():
             {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
         ).fetchone()
         if playerInfo:
-            player_id = playerInfo['pl_id']
+            print(f"Player found: {playerInfo}")
+            player_id = playerInfo[0]
     except Exception as e:
         print("Error: " + str(e))
 
@@ -2215,6 +2212,97 @@ def calculate_ELO_full():
                 # Calculate rating changes for B2
                 delta_B2 = ELO_K * (1 - (1 / (1 + 10 ** ((ranking_TeamA - B2_ranking) / 400))))
                 db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_wins = pl_wins + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_B2, 'player_id': B2_ID})
-        print("Done!")
+
+            if d1[9] == 0 and d1[10] == 0:
+                pass
+            else:
+                # Define the queries
+                queries = [
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': A1_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': A2_ID,
+                        'op1_id': B1_ID,
+                        'op2_id': B2_ID,
+                        'result_team': d1[9],
+                        'result_op': d1[10],
+                        'before_rank': A1_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': A2_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': A1_ID,
+                        'op1_id': B1_ID,
+                        'op2_id': B2_ID,
+                        'result_team': d1[9],
+                        'result_op': d1[10],
+                        'before_rank': A2_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': B1_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': B2_ID,
+                        'op1_id': A1_ID,
+                        'op2_id': A2_ID,
+                        'result_team': d1[10],
+                        'result_op': d1[9],
+                        'before_rank': B1_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': B2_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': B1_ID,
+                        'op1_id': A1_ID,
+                        'op2_id': A2_ID,
+                        'result_team': d1[10],
+                        'result_op': d1[9],
+                        'before_rank': B2_ranking
+                    }
+                ]
+                try:
+                    for query in queries:
+                        # Convert date strings to Python date objects
+                        el_date = datetime.strptime(query['date'], '%Y-%m-%d')
+                        el_start_time = datetime.strptime(query['time_start'], '%H:%M:%S').time()
+                        # Execute the query
+                        db.session.add(
+                            ELOrankingHist(
+                                el_gm_id=query['gm_id'],
+                                el_pl_id=query['pl_id'],
+                                el_date=el_date,
+                                el_startTime=el_start_time,
+                                el_pl_id_teammate=query['teammate_id'],
+                                el_pl_name_teammate=db.session.query(Players.pl_name).filter(Players.pl_id == query['teammate_id']).scalar(),
+                                el_pl_id_op1=query['op1_id'],
+                                el_pl_name_op1=db.session.query(Players.pl_name).filter(Players.pl_id == query['op1_id']).scalar(),
+                                el_pl_id_op2=query['op2_id'],
+                                el_pl_name_op2=db.session.query(Players.pl_name).filter(Players.pl_id == query['op2_id']).scalar(),
+                                el_result_team=query['result_team'],
+                                el_result_op=query['result_op'],
+                                el_beforeRank=query['before_rank'],
+                                el_afterRank=db.session.query(ELOranking.pl_rankingNow).filter(ELOranking.pl_id == query['pl_id']).scalar() or 1000
+                            )
+                        )
+                        db.session.commit()
+                    # Commit the transaction
+                    db.session.commit()
+
+                except Exception as e:
+                    # Rollback the transaction if an error occurs
+                    print("Error RHIST:", e)
+                    db.session.rollback()
+
+                finally:
+                    # Close the session
+                    db.session.close()
+
     except Exception as e:
         print("Error99:", e)
