@@ -302,7 +302,7 @@ def insert_game_day_players(gameDayID):
                         player2ID = player.gp_idPlayer
                         player2Name = player.gp_namePlayer
 
-                print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
+                #print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
                 db.session.execute(
                 text(f"update tb_game set gm_idPlayer_A1=:player1ID, gm_namePlayer_A1=:player1Name, gm_idPlayer_A2=:player2ID, gm_namePlayer_A2=:player2Name where gm_idGameDay=:gameDay_id and gm_teamA=:team"),
                     {"player1ID": player1ID, "player1Name": player1Name, "player2ID": player2ID, "player2Name": player2Name, "gameDay_id": gameDay_id, "team": team}
@@ -382,7 +382,7 @@ def insert_game_day_players(gameDayID):
                         player2ID = player.gp_idPlayer
                         player2Name = player.gp_namePlayer
 
-                print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
+                #print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
                 db.session.execute(
                 text(f"update tb_game set gm_idPlayer_A1=:player1ID, gm_namePlayer_A1=:player1Name, gm_idPlayer_A2=:player2ID, gm_namePlayer_A2=:player2Name where gm_idGameDay=:gameDay_id and gm_teamA=:team"),
                     {"player1ID": player1ID, "player1Name": player1Name, "player2ID": player2ID, "player2Name": player2Name, "gameDay_id": gameDay_id, "team": team}
@@ -461,7 +461,7 @@ def insert_game_day_players(gameDayID):
                         player2ID = player.gp_idPlayer
                         player2Name = player.gp_namePlayer
 
-                print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
+                #print(f"Reached here: {player1ID}, {player1Name}, {player2ID}, {player2Name}, {gameDay_id}, {team}, ")
                 db.session.execute(
                 text(f"update tb_game set gm_idPlayer_A1=:player1ID, gm_namePlayer_A1=:player1Name, gm_idPlayer_A2=:player2ID, gm_namePlayer_A2=:player2Name where gm_idGameDay=:gameDay_id and gm_teamA=:team"),
                     {"player1ID": player1ID, "player1Name": player1Name, "player2ID": player2ID, "player2Name": player2Name, "gameDay_id": gameDay_id, "team": team}
@@ -936,7 +936,7 @@ def insertPlayer():
             {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
         ).fetchone()
         if playerInfo:
-            print(f"Player found: {playerInfo}")
+            #print(f"Player found: {playerInfo}")
             player_id = playerInfo[0]
     except Exception as e:
         print("Error: " + str(e))
@@ -954,16 +954,16 @@ def insertPlayer():
         
         # Retrieve player id for photo
         try:
-            print("reached playerinfo")
+            #print("reached playerinfo")
             playerInfo = db.session.execute(
                 text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND pl_email=:player_email AND pl_birthday=:player_dob"),
                 {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
             ).fetchone()
-            print("executed playerinfo")
+            #print("executed playerinfo")
             if playerInfo:
-                print(playerInfo)
+                #print(playerInfo)
                 player_id = playerInfo[0]
-                print(f"player_id: {player_id}")
+                #print(f"player_id: {player_id}")
         except Exception as e:
             print("Error: " + str(e))
     else:
@@ -980,7 +980,7 @@ def insertPlayer():
     # Insert photo of player
     image = request.files['player_photo']
     if image and player_id>0:
-        print("image is found")
+        #image is found")
         # path = 'website/static/photos/users/'+str(player_id)+'/'
         path = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/users/'+str(player_id)+'/'
         pathRelative = 'static\\photos\\users\\'+str(player_id)+'\\'
@@ -988,7 +988,7 @@ def insertPlayer():
                 
         # Check if directory exists, if not, create it.
         if os.path.exists(path) == False:
-            print('Dir path not found')
+            #print('Dir path not found')
             os.mkdir(path)
         # Check if main.jpg exists, if exists delete it
         if os.path.exists(filePath) == True:
@@ -997,18 +997,18 @@ def insertPlayer():
         # Upload image to directory
         fileName = 'main.jpg'
         basedir = os.path.abspath(os.path.dirname(__file__))
-        print(f"basedir: {basedir}")
-        print(f"filePath: {filePath}")
+        #print(f"basedir: {basedir}")
+        #print(f"filePath: {filePath}")
         newPath = os.path.join(basedir, pathRelative, fileName)
         # image.save(newPath)
         image.save(filePath)
-        print("image saved")
+        #print("image saved")
 
 
     return redirect(url_for('views.managementPlayers', user=current_user)) 
 
 def calculateLeagueClassification(leagueID):
-    print("Enter LeagueClassification")
+    #print("Enter LeagueClassification")
     # clear the league classification
     try:
         LeagueClassification.query.filter_by(lc_idLeague=leagueID).delete()
@@ -1165,7 +1165,7 @@ def calculateLeagueClassification(leagueID):
         # Handle the error, maybe log it or display a message to the user
 
 def calculateGameDayClassification(gameDayID):
-    print("Enter GameDayClassification")
+    #print("Enter GameDayClassification")
     # clear the league classification
     gameDay = GameDay.query.filter_by(gd_id=gameDayID).first()
     leagueID = gameDay.gd_idLeague
@@ -1178,7 +1178,7 @@ def calculateGameDayClassification(gameDayID):
 
 
         for player in players_data:
-            print(player)
+            #print(player)
             id_player = player.pl_id
             player_name = player.pl_name
             player_birthday = player.pl_birthday
@@ -1281,12 +1281,12 @@ def calculateGameDayClassification(gameDayID):
                     .select_from(subquery)
                     .group_by("GAMEDAYID", "PLAYERID", "PLAYERNAME")
                 )
-                print(f"query: {query}")
+                #print(f"query: {query}")
                 result = query.all()
-                print(f"result: {result}")
+                #print(f"result: {result}")
 
                 for r2 in result:
-                    print(r2)
+                    #print(r2)
                     # Write Classification
                     classification = GameDayClassification(
                         gc_idLeague=leagueID,
@@ -1332,7 +1332,7 @@ def calculateGameDayClassification(gameDayID):
         print(f"Error: {e}")
         # Handle the error, maybe log it or display a message to the user
 
-    print("Reached Finally")
+    #print("Reached Finally")
     # Finally we need to update the winners
     winners_query = (
         db.session.query(
@@ -1377,7 +1377,7 @@ def calculateGameDayClassification(gameDayID):
 
     # Commit the changes
     db.session.commit()
-    print("Ended Finally")
+    #print("Ended Finally")
     
 def calculate_player_age(birthdate):
         today = date.today()
@@ -1448,7 +1448,7 @@ def func_create_games_for_gameday(gameDayID):
     gameStart_str = gameStart.strftime("%H:%M:%S")
     gameEnd_str = gameEnd.strftime("%H:%M:%S")  
     gameDay_Day_str = gameDay_Day.strftime("%Y-%m-%d")
-    print(gameDay_Day_str)
+    #print(gameDay_Day_str)
                                
                                        
     # if there are games but the number of games is not the same as the necessary delete all the games
@@ -2032,6 +2032,7 @@ def func_create_games_for_gameday(gameDayID):
             necessary_games = 0
 
 def calculate_ELO_full():
+    #print("Print from beggining of ELO calc")
     # Delete all rows from tb_ELO_ranking
     try:
         db.session.execute(
@@ -2242,11 +2243,17 @@ def calculate_ELO_full():
     except Exception as e:
         print("Error99:", e)
 
+    #print("Print from end of ELO calc")
+
 def calculate_ELO_full_background():
     # Wrap the function you want to execute in the background
+    #print("Printing from Background")
     calculate_ELO_full()
+    #print("Printing from Background After ELO Calc")
 
 def start_background_task():
     # Start a background thread to execute the task
+    #print("Printing before threading")
     background_thread = threading.Thread(target=calculate_ELO_full_background)
     background_thread.start()
+    #print("Printing after threading")
