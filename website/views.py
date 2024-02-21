@@ -12,7 +12,7 @@ views =  Blueprint('views', __name__)
 
 @views.route('/', methods=['GET', 'POST'])
 def home():
-    leagues_data = League.query.order_by(League.lg_status).all()
+    leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     return render_template("index.html", user=current_user, result=leagues_data)
 
 
@@ -39,7 +39,7 @@ def gameDay_detail(gameDayID):
 @views.route('/managementLeague', methods=['GET', 'POST'])
 @login_required
 def managementLeague():
-    leagues_data = League.query.order_by(League.lg_status).all()
+    leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     return render_template("managementLeague.html", user=current_user, result=leagues_data)
 
 @views.route('/managementLeague_detail/<leagueID>', methods=['GET', 'POST'])
