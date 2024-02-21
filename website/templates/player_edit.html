@@ -154,6 +154,71 @@
     </div>
 </div><!--END ROW -->
 
+<!-- DONE - Add the graph for ELO -->
+<!-- ROW ELO CHART -->
+<div class="row">
+  <div class="col-12 d-none d-sm-block">
+      <div class="card">
+          <div class="card-header">Evolução Ranking ELO
+              <div class="card-action">
+              </div>
+          </div>
+          <div class="card-body">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><i class="fa fa-circle mr-2 text-white"></i>Ranking</li>
+              </ul>
+              <div class="chart-container-1">
+                  <canvas id="ELO_Chart"></canvas>
+              </div>
+          </div>
+          <div class="row m-0 row-group text-center border-top border-light-3">
+              <div class="col-12 col-lg-4">
+                  <div class="p-3">
+                      
+                      <h5 class="mb-0">{{ rankingELO_bestWorst[0]|default(0)|round(2) }}</h5>
+                      <small class="mb-0">Valor mais alto <span> <i class="fa fa-arrow-down"></i> {{ '%.2f' % (((rankingELO_bestWorst[0] / rankingELO_bestWorst[2])-1) * 100) }}%</span></small>
+                  </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                  <div class="p-3">
+                      <h5 class="mb-0">{{ rankingELO_bestWorst[1]|round(2) }}</h5>
+                      <small class="mb-0">Valor mais baixo <span> <i class="fa fa-arrow-up"></i> {{ '%.2f' % (((rankingELO_bestWorst[2]/rankingELO_bestWorst[1])-1)*100) }}%</span></small>
+                  </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                  <div class="p-3">
+                      <h5 class="mb-0">{{ (rankingELO_bestWorst[0]-rankingELO_bestWorst[1])|round(2) }}</h5>
+                      <small class="mb-0">Variancia <span> <i class="fa fa-arrows-v"></i> {{ '%.2f' % (((rankingELO_bestWorst[0]/rankingELO_bestWorst[1])-1)*100) }}%</span></small>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div><!-- End Row -->
+
+<!-- ROW ELO CHART -->
+<div class="row">
+  <div class="col-12 d-block d-sm-none">
+      <div class="card">
+          <div class="card-header">Evolução Ranking ELO
+              <div class="card-action">
+              </div>
+          </div>
+          <div class="card-body">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><i class="fa fa-circle mr-2 text-white"></i>Ranking</li>
+              </ul>
+              <div class="chart-container-1">
+                  <canvas id="ELO_ChartShort"></canvas>
+              </div>
+          </div>
+          <div class="row m-0 row-group text-center border-top border-light-3">
+          </div>
+      </div>
+  </div>
+</div><!-- End Row -->
+
+
 
 <!-- Games WPT Style row -->
 <!-- Games Row -->
@@ -245,6 +310,135 @@
       </div>
     {% endfor %}
 </div> <!--END ROW -->
-  
+ 
+ 
+<!-- Chart js -->
+<script src="../static/plugins/Chart.js/Chart.min.js"></script>
+<!-- Index js -->
+<script src="../static/js/index.js"></script>
+
+<script>
+  const xValues = [];
+  const yValues = [];
+  xValues[0]= 0;
+  yValues[0]= 1000;
+  {% for dataELO in rankingELO_hist %}
+      {% set index = loop.length - loop.index0 - 1 %}
+      xValues[{{ index }}] = {{ dataELO[0] }};
+      yValues[{{ index }}] = {{ dataELO[9] }};
+  {% endfor %}
+
+  const xValuesShort = [];
+  const yValuesShort = [];
+  {% for dataELOShort in rankingELO_histShort %}
+      {% set index = loop.length - loop.index0 - 1 %}
+      xValuesShort[{{ index }}] = {{ dataELOShort[0] }};
+      yValuesShort[{{ index }}] = {{ dataELOShort[9] }};
+  {% endfor %}
+
+  new Chart("ELO_Chart", {
+    type: "line",
+    data: {
+      labels: xValues,
+      datasets: [{
+        label: 'Ranking',
+        data: yValues,
+        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+        borderColor: "transparent",
+        pointRadius :"0",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      legend: {
+        display: false,
+        labels: {
+          fontColor: '#ddd',  
+          boxWidth:40
+        }
+      },
+      tooltips: {
+        displayColors:false
+      },  
+      scales: {
+        xAxes: [{
+          ticks: {
+            beginAtZero:true,
+            fontColor: '#ddd'
+          },
+          gridLines: {
+            display: true ,
+            color: "rgba(221, 221, 221, 0.08)"
+          },
+        }],
+        yAxes: [{
+          ticks: {
+            beginAtZero:false,
+            fontColor: '#ddd'
+          },
+          gridLines: {
+            display: true ,
+            color: "rgba(221, 221, 221, 0.08)"
+          },
+        }]
+       }
+     }
+  });
+
+  new Chart("ELO_ChartShort", {
+    type: "line",
+    data: {
+      labels: xValuesShort,
+      datasets: [{
+        label: 'Ranking',
+        data: yValuesShort,
+        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+        borderColor: "transparent",
+        pointRadius :"0",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      legend: {
+        display: false,
+        labels: {
+          fontColor: '#ddd',  
+          boxWidth:40
+        }
+      },
+      tooltips: {
+        displayColors:false
+      },  
+      scales: {
+        xAxes: [{
+          ticks: {
+            beginAtZero:true,
+            fontColor: '#ddd'
+          },
+          gridLines: {
+            display: true ,
+            color: "rgba(221, 221, 221, 0.08)"
+          },
+        }],
+        yAxes: [{
+          ticks: {
+            beginAtZero:false,
+            fontColor: '#ddd'
+          },
+          gridLines: {
+            display: true ,
+            color: "rgba(221, 221, 221, 0.08)"
+          },
+        }]
+       }
+     }
+  });
+
+</script>
+
+
+
 
 {% endblock %}

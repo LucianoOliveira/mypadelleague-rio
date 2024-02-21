@@ -501,7 +501,7 @@ def player_detail(playerID):
     else:
         last_game_date_string = "Ainda não tem jogos registados!"
 
-    # # All games
+    # All games
     try:
         games_query = db.session.execute(
             text(f"SELECT gm_timeStart, gm_timeEnd, gm_court, gm_namePlayer_A1, gm_namePlayer_A2, gm_result_A, gm_result_B, gm_namePlayer_B1, gm_namePlayer_B2, gm_id, gm_idPlayer_A1, gm_idPlayer_A2, gm_idPlayer_B1, gm_idPlayer_B2, gm_date, (el_afterRank - el_beforeRank) AS gm_points_var FROM tb_game JOIN tb_ELO_ranking_hist ON tb_ELO_ranking_hist.el_gm_id = tb_game.gm_id AND tb_ELO_ranking_hist.el_pl_id = :playerID WHERE (gm_idPlayer_A1 = :playerID OR gm_idPlayer_A2 = :playerID OR gm_idPlayer_B1 = :playerID OR gm_idPlayer_B2 = :playerID) AND (gm_result_A > 0 OR gm_result_B > 0) ORDER BY gm_date DESC, gm_timeStart DESC"),
@@ -636,6 +636,50 @@ def player_detail(playerID):
     except Exception as e:
         print(f"Error: {str(e)}")
 
+
+    # rankingELO_hist
+    try:
+        rankingELO_hist = db.session.execute(
+            text(f"SELECT el_gm_id, el_date, el_startTime, el_pl_name_teammate, el_pl_name_op1, el_pl_name_op2, el_result_team, el_result_op, el_beforeRank, el_afterRank FROM tb_ELO_ranking_hist where el_pl_id=:playerID order by el_date desc, el_startTime desc LIMIT 50"),
+            {"playerID": playerID},
+        ).fetchall()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_hist:
+        pass
+    else:
+        rankingELO_hist=[0,0,0,0,0,0,0,0,0]
+
+    # rankingELO_histShort
+    try:
+        rankingELO_histShort = db.session.execute(
+            text(f"SELECT el_gm_id, el_date, el_startTime, el_pl_name_teammate, el_pl_name_op1, el_pl_name_op2, el_result_team, el_result_op, el_beforeRank, el_afterRank FROM tb_ELO_ranking_hist where el_pl_id=:playerID order by el_date desc, el_startTime desc LIMIT 10"),
+            {"playerID": playerID},
+        ).fetchall()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_histShort:
+        pass
+    else:
+        rankingELO_histShort=[0,0,0,0,0,0,0,0,0]
+
+    # rankingELO_bestWorst
+    rankingELO_bestWorst=[1000,1000,1000]
+    try:
+        rankingELO_bestWorst0 = db.session.execute(
+            text(f"SELECT max(el_afterRank) as best, min(el_afterRank) as worst, (SELECT el_afterRank from `tb_ELO_ranking_hist` where el_pl_id=:playerID order by el_date desc, el_startTime desc limit 1) as rankNow FROM `tb_ELO_ranking_hist` where el_pl_id=:playerID"),
+            {"playerID": playerID},
+        ).fetchone()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_bestWorst0[0]!=None:
+        rankingELO_bestWorst = rankingELO_bestWorst0
+    else:
+        rankingELO_bestWorst=[1000,1000,1000]
+
     # DONE - Get data from games to complete user data
     player_data = {
         "player_id": current_Player.pl_id,
@@ -659,7 +703,7 @@ def player_detail(playerID):
         "best_opponent_victory_percentage": "{:.2f}".format(best_opponent[4]),
         "best_opponent_games": best_opponent[3],
     }
-    return render_template("player_detail.html", user=current_user, player_id=playerID, player=player_data, results=games_query, getPlayerStats=player_stats, best_teammate=best_teammate)   
+    return render_template("player_detail.html", user=current_user, player_id=playerID, player=player_data, results=games_query, getPlayerStats=player_stats, best_teammate=best_teammate, rankingELO_hist=rankingELO_hist, rankingELO_histShort=rankingELO_histShort, rankingELO_bestWorst=rankingELO_bestWorst)   
 
 @views.route('/player_edit/<playerID>', methods=['GET', 'POST'])
 @login_required
@@ -821,6 +865,49 @@ def player_edit(playerID):
     except Exception as e:
         print(f"Error: {str(e)}")
 
+    # rankingELO_hist
+    try:
+        rankingELO_hist = db.session.execute(
+            text(f"SELECT el_gm_id, el_date, el_startTime, el_pl_name_teammate, el_pl_name_op1, el_pl_name_op2, el_result_team, el_result_op, el_beforeRank, el_afterRank FROM tb_ELO_ranking_hist where el_pl_id=:playerID order by el_date desc, el_startTime desc LIMIT 50"),
+            {"playerID": playerID},
+        ).fetchall()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_hist:
+        pass
+    else:
+        rankingELO_hist=[0,0,0,0,0,0,0,0,0]
+
+    # rankingELO_histShort
+    try:
+        rankingELO_histShort = db.session.execute(
+            text(f"SELECT el_gm_id, el_date, el_startTime, el_pl_name_teammate, el_pl_name_op1, el_pl_name_op2, el_result_team, el_result_op, el_beforeRank, el_afterRank FROM tb_ELO_ranking_hist where el_pl_id=:playerID order by el_date desc, el_startTime desc LIMIT 10"),
+            {"playerID": playerID},
+        ).fetchall()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_histShort:
+        pass
+    else:
+        rankingELO_histShort=[0,0,0,0,0,0,0,0,0]
+
+    # rankingELO_bestWorst
+    rankingELO_bestWorst=[1000,1000,1000]
+    try:
+        rankingELO_bestWorst0 = db.session.execute(
+            text(f"SELECT max(el_afterRank) as best, min(el_afterRank) as worst, (SELECT el_afterRank from `tb_ELO_ranking_hist` where el_pl_id=:playerID order by el_date desc, el_startTime desc limit 1) as rankNow FROM `tb_ELO_ranking_hist` where el_pl_id=:playerID"),
+            {"playerID": playerID},
+        ).fetchone()
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+    if rankingELO_bestWorst0[0]!=None:
+        rankingELO_bestWorst = rankingELO_bestWorst0
+    else:
+        rankingELO_bestWorst=[1000,1000,1000]
+    
     # DONE - Get data from games to complete user data
     player_data = {
         "player_id": current_Player.pl_id,
@@ -845,7 +932,7 @@ def player_edit(playerID):
         "best_opponent_victory_percentage": "{:.2f}".format(best_opponent[4]),
         "best_opponent_games": best_opponent[3],
     }
-    return render_template("player_edit.html", user=current_user, player_id=playerID, player=player_data, results=games_query, getPlayerStats=player_stats, best_teammate=best_teammate)   
+    return render_template("player_edit.html", user=current_user, player_id=playerID, player=player_data, results=games_query, getPlayerStats=player_stats, best_teammate=best_teammate, rankingELO_hist=rankingELO_hist, rankingELO_histShort=rankingELO_histShort, rankingELO_bestWorst=rankingELO_bestWorst)   
 
 
 @views.route('/display_user_image/<userID>')
