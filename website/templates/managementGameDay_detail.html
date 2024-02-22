@@ -151,6 +151,7 @@
 {% endif %}
 
 <!-- Games Row -->
+
 <form action="{{ url_for('views.submitResultsGameDay', gameDayID=gameDay.gd_id) }}" method="post">
 <div class="row">
     {% for data in result %}
@@ -236,9 +237,11 @@
         </div>
       </div>
     {% endfor %}
-  </div>
-  <div class="form-group">
-    <button type="submit" class="btn btn-light btn-round px-5"><i class="icon-save"></i> Submeter Resultados</button>
+    {% if result %}
+    <div class="form-group">
+      <button type="submit" class="btn btn-light btn-round px-5"><i class="icon-save"></i> Submeter Resultados</button>
+    </div>
+    {% endif %}
   </div>
   </form>
 
