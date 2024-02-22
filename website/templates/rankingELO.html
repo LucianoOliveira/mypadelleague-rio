@@ -24,7 +24,7 @@
                             <tr>
                                 <!-- <th scope="row">{{ data['pl_id'] }}</th> -->
                                 {% if data['pl_id'] %}
-                                <td class=""  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"><img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" 
+                                <td class="nameContainerELO"  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"><img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" 
                                     alt="{{ data['pl_name'] }}" class="rounded-circle" width="40"
                                     onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> {{ data['pl_name'] }}</td>
                                 {% else %}

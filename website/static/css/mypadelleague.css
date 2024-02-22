@@ -22,4 +22,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
+}
+
+.nameContainerELO {
+width: 237px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
