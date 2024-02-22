@@ -159,8 +159,8 @@
           <div class="card-header">
           </div>
           <div class="card-body">
-            <div class="swiper-slide" data-swiper-slide-index="1" style="width: 335.5px; left: 0px; margin-right: 1px;" role="group" aria-label="3 / 28">
-              <div id="partido1B" class="slideoculto">
+            <div class="swiper-slide" data-swiper-slide-index="1" style="width: 310px; left: 0px; margin-right: 1px;" role="group" aria-label="3 / 28">
+              <!-- <div id="partido1B" class="slideoculto">
                 <div style="width: 100%; height: 140px;"> 
                   <a href="https://www.worldpadeltour.com/marcador" target="_parent">
                     <img src="swipper/score1.png" style="width:50%;margin-top:5%;float:left;">
@@ -169,8 +169,8 @@
                     <img src="swipper/stats.png" style="width:50%;margin-top:5%;float:left;">
                   </a>
                 </div>
-              </div>
-              <div id="partido1A" style="width: 100%;height: 192px;padding: 10px;">
+              </div> -->
+              <div id="partido1A" style="width: 100%;height: 192px;padding: 5px;">
                 <div class="fase">{{ data['gm_court'] }}</div>
                 <div class="fecha">{{ data['gm_timeStart'] }}</div>
                 {% if data['gm_idPlayer_A1'] != '' %}
@@ -200,8 +200,8 @@
                   <div class="nombres">
                     <!-- <div>{{ acronA1 }}</div>
                     <div>{{ acronA2 }}</div> -->
-                    <div>{{ data['gm_namePlayer_A1'] }}</div>
-                    <div>{{ data['gm_namePlayer_A2'] }}</div>
+                    <div class="nameContainer">{{ data['gm_namePlayer_A1'] }}</div>
+                    <div class="nameContainer">{{ data['gm_namePlayer_A2'] }}</div>
                   </div>
                 </div>
                 <div class="marcador-wrapper">

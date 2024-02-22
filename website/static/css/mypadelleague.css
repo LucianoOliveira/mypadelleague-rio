@@ -16,3 +16,10 @@
 .hiddenCourt {
     border-color: green;
 }
+
+.nameContainer {
+    width: 103px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
