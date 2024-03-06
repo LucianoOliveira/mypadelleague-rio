@@ -15,6 +15,11 @@ def home():
     leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     return render_template("index.html", user=current_user, result=leagues_data)
 
+@views.route('/testIndex', methods=['GET', 'POST'])
+def testIndex():
+    leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
+    return render_template("testIndex.html", user=current_user, result=leagues_data)
+
 
 @views.route('/players', methods=['GET', 'POST'])
 def players():
@@ -1196,8 +1201,11 @@ def calculateLeagueClassification(leagueID):
                         (func.sum(subquery.c.GAMESFAVOR) - func.sum(subquery.c.GAMESAGAINST)).label("GAMESDIFFERENCE"),
                         (
                             ((func.sum(subquery.c.POINTS) + func.sum(subquery.c.GAMES) / 3) * 100000) +
-                            ((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000) +
-                            ((func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100) +
+                            (func.sum(subquery.c.WINS) *10000) +
+                            (func.sum(subquery.c.GAMES) *1000) +
+                            ((func.sum(subquery.c.GAMESFAVOR)- func.sum(subquery.c.GAMESAGAINST))*100) +
+                            # ((func.sum(subquery.c.WINS) / func.sum(subquery.c.GAMES)) * 10000) +
+                            # ((func.sum(subquery.c.GAMESFAVOR) / (func.sum(subquery.c.GAMESFAVOR) + func.sum(subquery.c.GAMESAGAINST))) * 100) +
                             (player_age / 100)
                         ).label("RANKING")
                     )
