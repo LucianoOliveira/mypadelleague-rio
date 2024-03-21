@@ -1009,6 +1009,98 @@ def submitResultsGameDay(gameDayID):
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
 
 
+@views.route('/insertLeague', methods=['GET', 'POST'])
+@login_required
+def insertLeague():
+    league_name = request.form.get('league_name')
+    league_level = request.form.get('league_level')
+    league_status = request.form.get('league_status')
+    league_numGameDays = request.form.get('league_numGameDays')
+    league_numTeams = request.form.get('league_teams')
+    league_dateStart = request.form.get('league_dateStart')
+    league_dateEnd = request.form.get('league_dateEnd')
+
+    # Insert into league
+    try:
+        db.session.execute(
+            text(f"INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate) (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd)"),
+            {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd}
+        )
+        db.session.commit()
+    except Exception as e:
+        print("Error: " + str(e))
+    
+    # Retrieve league id for photo
+    try:
+        #print("reached playerinfo")
+        leagueInfo = db.session.execute(
+            text(f"SELECT lg_id FROM tb_league WHERE lg_name=:league_name AND lg_level=:league_level AND lg_status=:league_status AND lg_nbrDays=:league_numGameDays AND lg_nbrTeams=:league_numTeams AND lg_startDate=:league_dateStart AND lg_endDate=:league_dateEnd"),
+            {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd}
+        ).fetchone()
+        #print("executed playerinfo")
+        if leagueInfo:
+            #print(playerInfo)
+            league_id = leagueInfo[0]
+            #print(f"player_id: {player_id}")
+    except Exception as e:
+        print("Error: " + str(e))
+
+    # Insert photo of player
+    image = request.form.get('league_billboard')
+    if image and league_id>0:
+        #image is found")
+        # path = 'website/static/photos/leagues/'
+        path = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'
+        pathRelative = 'static\\photos\\leagues\\'
+        filePath = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'+str(league_id)+'.jpg'
+                
+        # Check if directory exists, if not, create it.
+        if os.path.exists(path) == False:
+            #print('Dir path not found')
+            os.mkdir(path)
+        # Check if main.jpg exists, if exists delete it
+        if os.path.exists(filePath) == True:
+            os.remove(filePath)
+        
+        # Upload image to directory
+        fileName = str(league_id)+'.jpg'
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        #print(f"basedir: {basedir}")
+        #print(f"filePath: {filePath}")
+        newPath = os.path.join(basedir, pathRelative, fileName)
+        # image.save(newPath)
+        image.save(filePath)
+        #print("image saved")
+
+    image_S = request.form.get('league_billboard_S')
+    if image_S and league_id>0:
+        #image is found")
+        # path = 'website/static/photos/leagues/'
+        path = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'
+        pathRelative = 'static\\photos\\leagues\\'
+        filePath = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'+str(league_id)+'s.jpg'
+                
+        # Check if directory exists, if not, create it.
+        if os.path.exists(path) == False:
+            #print('Dir path not found')
+            os.mkdir(path)
+        # Check if main.jpg exists, if exists delete it
+        if os.path.exists(filePath) == True:
+            os.remove(filePath)
+        
+        # Upload image to directory
+        fileName = str(league_id)+'s.jpg'
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        #print(f"basedir: {basedir}")
+        #print(f"filePath: {filePath}")
+        newPath = os.path.join(basedir, pathRelative, fileName)
+        # image.save(newPath)
+        image_S.save(filePath)
+        #print("image saved")
+
+
+    return redirect(url_for('views.managementLeague', user=current_user)) 
+
 @views.route('/insertPlayer', methods=['GET', 'POST'])
 @login_required
 def insertPlayer():
