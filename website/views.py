@@ -82,6 +82,23 @@ def create_league():
 def create_player():
     return render_template("create_player.html", user=current_user)
 
+@views.route('/delete_player/<playerID>')
+@login_required
+def delete_player(playerID):
+    try:
+        # Delete Player
+        Players.query.filter_by(pl_id=playerID).delete()
+
+        # Commit the changes to the database
+        db.session.commit()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        # Handle the error, maybe log it or display a message to the user
+    
+    players_data = Players.query.order_by(Players.pl_name).all()
+    return render_template('players.html', user=current_user, players=players_data)
+
 @views.route('/managementGameDay_detail/<gameDayID>')
 @login_required
 def managementGameDay_detail(gameDayID):

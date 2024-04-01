@@ -41,6 +41,12 @@
                   <div class="form-group">
                       <button type="submit" class="btn btn-light btn-round px-5"><i class="icon-save"></i> Editar Jogador</button>
                   </div>
+                  <!-- Delete button -->
+                  <div class="form-group">
+                    <a href="{{ url_for('views.delete_player', playerID=player.player_id) }}" class="btn btn-danger btn-round" onclick="return confirm('Tem a certeza que deseja apagar este jogador?')">
+                        <i class="icon-trash"></i> Apagar Jogador
+                    </a>
+                </div>
               </form>
           </div>
       </div>
