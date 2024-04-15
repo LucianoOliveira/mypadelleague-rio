@@ -77,6 +77,13 @@ def create_league():
     # leagues_data = League.query.order_by(League.lg_status).all()
     return render_template("create_league.html", user=current_user)
 
+@views.route('/create_game_day/<leagueID>', methods=['GET', 'POST'])
+@login_required
+def create_game_day(leagueID):
+    league_data = League.query.filter_by(lg_id=leagueID).first()
+    # leagues_data = League.query.order_by(League.lg_status).all()
+    return render_template("create_game_day.html", user=current_user, league=league_data)
+
 @views.route('/create_player', methods=['GET', 'POST'])
 @login_required
 def create_player():
@@ -98,6 +105,23 @@ def delete_player(playerID):
     
     players_data = Players.query.order_by(Players.pl_name).all()
     return render_template('players.html', user=current_user, players=players_data)
+
+@views.route('/deleteLeague/<leagueID>')
+@login_required
+def deleteLeague(leagueID):
+    try:
+        # Delete League
+        League.query.filter_by(lg_id=leagueID).delete()
+
+        # Commit the changes to the database
+        db.session.commit()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        # Handle the error, maybe log it or display a message to the user
+    
+    leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
+    return render_template("managementLeague.html", user=current_user, result=leagues_data)
 
 @views.route('/managementGameDay_detail/<gameDayID>')
 @login_required
@@ -496,6 +520,45 @@ def insert_game_day_players(gameDayID):
                 db.session.commit()
     
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
+
+@views.route('/insertGameDay/<leagueID>', methods=['GET', 'POST'])
+@login_required
+def insertGameDay(leagueID):
+    print("Here")
+    try:
+        league_id = leagueID
+        #TODO - Read from league the number of teams and put into gameDay_teamNum
+        leagueInfo = db.session.execute(text(f"SELECT lg_nbrTeams, lg_minWarmUp, lg_minPerGame, lg_minBetweenGames FROM tb_league WHERE lg_id=:league_id"), {'league_id': league_id}).fetchone()
+        gameDay_teamNum = leagueInfo[0]
+        gameDay_date = request.form.get('gameDay_dateStart')
+        gameDay_time = request.form.get('gameDay_timeStart')
+        warm_up = leagueInfo[1]
+        minPerGame = leagueInfo[2]
+        minBetweenGames = leagueInfo[3]
+        first_game_time_start = gameDay_time+warm_up
+        first_game_time_end = first_game_time_start+minPerGame
+        second_game_time_start = first_game_time_end+minBetweenGames
+        second_game_time_end = second_game_time_start+minPerGame
+        third_game_time_start = second_game_time_end+minBetweenGames
+        third_game_time_end = third_game_time_start+minPerGame
+        
+
+        # $query = "INSERT INTO tb_gameday (gd_id, gd_idLeague, gd_teamNum, gd_date, gd_status, gd_idWinner1, gd_nameWinner1, gd_idWinner2, gd_nameWinner2, gd_gameDayName) VALUES (NULL, '".$league_id."', '".$gameDay_teamNum."', '".$gameDay_date."', 'Por Jogar', NULL, NULL, NULL, NULL, NULL)";
+        db.session.execute(
+            text("INSERT INTO tb_gameday (gd_id, gd_idLeague, gd_teamNum, gd_date, gd_status, gd_idWinner1, gd_nameWinner1, gd_idWinner2, gd_nameWinner2, gd_gameDayName) VALUES (NULL, :league_id, :gameDay_teamNum, :gameDay_date, 'Por Jogar', NULL, NULL, NULL, NULL, NULL)"),
+            {"league_id": league_id, "gameDay_teamNum": gameDay_teamNum, "gameDay_date": gameDay_date}
+        )
+        db.session.commit()
+
+        #TODO - taking in consideration the start date and time and all the times in league we can create the placeholdes for the games if they don't exist yet
+
+    except Exception as e:
+        print("Error: " + str(e))
+
+    league_data = League.query.filter_by(lg_id=leagueID).first()
+    result = GameDay.query.filter_by(gd_idLeague=leagueID).all()
+    classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).order_by(desc(LeagueClassification.lc_ranking)).all()
+    return render_template("managementLeague_detail.html", user=current_user, league=league_data, result=result, classification=classification)
 
 
 @views.route('/player_detail/<playerID>')
@@ -1036,14 +1099,32 @@ def insertLeague():
     league_numTeams = request.form.get('league_teams')
     league_dateStart = request.form.get('league_dateStart')
     league_dateEnd = request.form.get('league_dateEnd')
+    league_type = request.form.get('league_type')
 
     # Insert into league
     try:
-        db.session.execute(
-            text(f"INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate) (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd)"),
-            {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd}
-        )
-        db.session.commit()
+        if league_type == 'Liga':
+            lg_minWarmUp = 5
+            lg_minPerGame = 25
+            lg_minBetweenGames = 5
+            lg_eloK = 40
+            db.session.execute(
+                text("INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate, lg_typeOfLeague, lg_minWarmUp, lg_minPerGame, lg_minBetweenGames, lg_eloK) VALUES (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd, :league_type, :lg_minWarmUp, :lg_minPerGame, :lg_minBetweenGames, :lg_eloK)"),
+                {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd, "league_type": league_type, "lg_minWarmUp": lg_minWarmUp, "lg_minPerGame": lg_minPerGame, "lg_minBetweenGames": lg_minBetweenGames, "lg_eloK": lg_eloK}
+            )
+            db.session.commit()
+        else:
+            league_numGameDays = 0
+            league_dateEnd = '9999-12-31'
+            lg_minWarmUp = 5
+            lg_minPerGame = 25
+            lg_minBetweenGames = 5
+            lg_eloK = 0
+            db.session.execute(
+                text("INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate, lg_typeOfLeague, lg_minWarmUp, lg_minPerGame, lg_minBetweenGames, lg_eloK) VALUES (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd, :league_type, :lg_minWarmUp, :lg_minPerGame, :lg_minBetweenGames, :lg_eloK)"),
+                {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd, "league_type": league_type, "lg_minWarmUp": lg_minWarmUp, "lg_minPerGame": lg_minPerGame, "lg_minBetweenGames": lg_minBetweenGames, "lg_eloK": lg_eloK}
+            )
+            db.session.commit()
     except Exception as e:
         print("Error: " + str(e))
     
@@ -1058,22 +1139,79 @@ def insertLeague():
         if leagueInfo:
             #print(playerInfo)
             league_id = leagueInfo[0]
+            if league_type == 'Liga':
+                gameDayInfo = db.session.execute(
+                    text(f"SELECT COUNT(*) AS NUMGAMEDAYS FROM tb_gameday WHERE gd_idLeague=:league_id"),
+                    {"league_id": league_id}
+                ).fetchone()
+                numGameDays = gameDayInfo[0]
+                print(f"numGameDays= {numGameDays}")
+                # Create
+                if numGameDays == 0:
+                    # Get league information
+                    league_info = League.query.filter_by(lg_id=league_id).first()
+                    
+                    if league_info:
+                        print("Have league_info")
+                        league_nbr_days = league_info.lg_nbrDays
+                        league_start_date = league_info.lg_startDate
+                        league_end_date = league_info.lg_endDate
+                        league_status = league_info.lg_status
+
+                        # next_date = datetime.strptime(league_start_date, '%Y-%m-%d')
+                        # next_date = league_start_date
+                        league_start_datetime = datetime.strptime(str(league_start_date), '%Y-%m-%d')
+                        next_date_time = league_start_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+                        print(f"next_date_time= {next_date_time}")
+
+                        for i in range(league_nbr_days):
+                            if league_status == "Inativo":
+                                game_day_status = "Terminado"
+                            else:
+                                # if nextDate < today, set status to "Terminado"
+                                if next_date_time < datetime.now():
+                                    game_day_status = "Terminado"
+                                # else, set status to "Por Jogar"
+                                else:
+                                    game_day_status = "Por Jogar"
+
+                            # Insert game day into the database
+                            next_date = next_date_time.date()
+                            print(f"next_date= {next_date}")
+                            game_day = GameDay(gd_idLeague=league_id, gd_date=next_date, gd_status=game_day_status)
+                            print("GameDay object")
+                            db.session.add(game_day)
+                            db.session.commit()
+                            print("Added GameDay")
+
+                            # Increment next date by 7 days
+                            next_date_time += timedelta(days=7)
+                            print(f"next_date_time= {next_date_time}")
+                    else:
+                        print("League not found")
+                else:
+                    print("Game days already exist for this league")
             #print(f"player_id: {player_id}")
     except Exception as e:
         print("Error: " + str(e))
 
     # Insert photo of player
-    image = request.form.get('league_billboard')
+    # print("Reached Insert Photo")
+    image = request.files['league_billboard']
     if image and league_id>0:
+        # print("Reached image exists")
         #image is found")
         # path = 'website/static/photos/leagues/'
         path = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'
         pathRelative = 'static\\photos\\leagues\\'
         filePath = str(os.path.abspath(os.path.dirname(__file__)))+'/static/photos/leagues/'+str(league_id)+'.jpg'
+        # print(f"Path: {path}")
+        # print(f"pathRelative: {pathRelative}")
+        # print(f"filePath: {filePath}")
                 
         # Check if directory exists, if not, create it.
         if os.path.exists(path) == False:
-            #print('Dir path not found')
+            # print('Dir path not found')
             os.mkdir(path)
         # Check if main.jpg exists, if exists delete it
         if os.path.exists(filePath) == True:
@@ -1082,14 +1220,14 @@ def insertLeague():
         # Upload image to directory
         fileName = str(league_id)+'.jpg'
         basedir = os.path.abspath(os.path.dirname(__file__))
-        #print(f"basedir: {basedir}")
-        #print(f"filePath: {filePath}")
+        # print(f"basedir: {basedir}")
+        # print(f"filePath: {filePath}")
         newPath = os.path.join(basedir, pathRelative, fileName)
         # image.save(newPath)
         image.save(filePath)
-        #print("image saved")
+        # print("image saved")
 
-    image_S = request.form.get('league_billboard_S')
+    image_S = request.files['league_billboard_S']
     if image_S and league_id>0:
         #image is found")
         # path = 'website/static/photos/leagues/'
@@ -1652,9 +1790,7 @@ def func_create_games_for_gameday(gameDayID):
     gameStart_str = gameStart.strftime("%H:%M:%S")
     gameEnd_str = gameEnd.strftime("%H:%M:%S")  
     gameDay_Day_str = gameDay_Day.strftime("%Y-%m-%d")
-    #print(gameDay_Day_str)
-                               
-                                       
+    #print(gameDay_Day_str)                                      
     # if there are games but the number of games is not the same as the necessary delete all the games
     num_games = Game.query.filter_by(gm_idGameDay=gameDayID).count()
     if num_games != necessary_games:
