@@ -116,6 +116,11 @@ def deleteLeague(leagueID):
         # Commit the changes to the database
         db.session.commit()
 
+        #Delete Gamedays
+        GameDay.query.filter(gd_idLeague=leagueID).delete()
+        # Commit the changes to the database
+        db.session.commit()
+
     except Exception as e:
         print(f"Error: {e}")
         # Handle the error, maybe log it or display a message to the user
@@ -1099,6 +1104,7 @@ def insertLeague():
     league_numTeams = request.form.get('league_teams')
     league_dateStart = request.form.get('league_dateStart')
     league_dateEnd = request.form.get('league_dateEnd')
+    league_timeStart = request.form.get('timeStart')
     league_type = request.form.get('league_type')
 
     # Insert into league
@@ -1109,8 +1115,8 @@ def insertLeague():
             lg_minBetweenGames = 5
             lg_eloK = 40
             db.session.execute(
-                text("INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate, lg_typeOfLeague, lg_minWarmUp, lg_minPerGame, lg_minBetweenGames, lg_eloK) VALUES (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd, :league_type, :lg_minWarmUp, :lg_minPerGame, :lg_minBetweenGames, :lg_eloK)"),
-                {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd, "league_type": league_type, "lg_minWarmUp": lg_minWarmUp, "lg_minPerGame": lg_minPerGame, "lg_minBetweenGames": lg_minBetweenGames, "lg_eloK": lg_eloK}
+                text("INSERT INTO tb_league (lg_name, lg_level, lg_status, lg_nbrDays, lg_nbrTeams, lg_startDate, lg_endDate, lg_startTime, lg_typeOfLeague, lg_minWarmUp, lg_minPerGame, lg_minBetweenGames, lg_eloK) VALUES (:league_name, :league_level, :league_status, :league_numGameDays, :league_numTeams, :league_dateStart, :league_dateEnd, :league_timeStart, :league_type, :lg_minWarmUp, :lg_minPerGame, :lg_minBetweenGames, :lg_eloK)"),
+                {"league_name": league_name, "league_level": league_level, "league_status": league_status, "league_numGameDays": league_numGameDays, "league_numTeams": league_numTeams, "league_dateStart": league_dateStart, "league_dateEnd": league_dateEnd, "league_timeStart": league_timeStart, "league_type": league_type, "lg_minWarmUp": lg_minWarmUp, "lg_minPerGame": lg_minPerGame, "lg_minBetweenGames": lg_minBetweenGames, "lg_eloK": lg_eloK}
             )
             db.session.commit()
         else:
@@ -1145,14 +1151,14 @@ def insertLeague():
                     {"league_id": league_id}
                 ).fetchone()
                 numGameDays = gameDayInfo[0]
-                print(f"numGameDays= {numGameDays}")
+                # print(f"numGameDays= {numGameDays}")
                 # Create
                 if numGameDays == 0:
                     # Get league information
                     league_info = League.query.filter_by(lg_id=league_id).first()
                     
                     if league_info:
-                        print("Have league_info")
+                        # print("Have league_info")
                         league_nbr_days = league_info.lg_nbrDays
                         league_start_date = league_info.lg_startDate
                         league_end_date = league_info.lg_endDate
@@ -1162,7 +1168,7 @@ def insertLeague():
                         # next_date = league_start_date
                         league_start_datetime = datetime.strptime(str(league_start_date), '%Y-%m-%d')
                         next_date_time = league_start_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-                        print(f"next_date_time= {next_date_time}")
+                        # print(f"next_date_time= {next_date_time}")
 
                         for i in range(league_nbr_days):
                             if league_status == "Inativo":
@@ -1177,16 +1183,16 @@ def insertLeague():
 
                             # Insert game day into the database
                             next_date = next_date_time.date()
-                            print(f"next_date= {next_date}")
+                            # print(f"next_date= {next_date}")
                             game_day = GameDay(gd_idLeague=league_id, gd_date=next_date, gd_status=game_day_status)
-                            print("GameDay object")
+                            # print("GameDay object")
                             db.session.add(game_day)
                             db.session.commit()
-                            print("Added GameDay")
+                            # print("Added GameDay")
 
                             # Increment next date by 7 days
                             next_date_time += timedelta(days=7)
-                            print(f"next_date_time= {next_date_time}")
+                            # print(f"next_date_time= {next_date_time}")
                     else:
                         print("League not found")
                 else:
