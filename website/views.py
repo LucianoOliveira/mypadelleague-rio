@@ -13,11 +13,16 @@ views =  Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 def home():
     try:
-        # db.session.execute(
-        #     text(f"update tb_league set lg_startTime='20:00:00' where lg_startTime='20:00'"),
-        #         {}
-        #     )
-        # db.session.commit()
+        db.session.execute(
+            text(f"update tb_league set lg_startTime='20:00:00' where lg_startTime='20:00'"),
+                {}
+            )
+        db.session.commit()
+        db.session.execute(
+            text(f"update tb_league set lg_startTime='09:00:00' where lg_startTime='09:00'"),
+                {}
+            )
+        db.session.commit()
         leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     except Exception as e:
         print(f"Error: {e}")
@@ -1112,8 +1117,9 @@ def insertLeague():
     league_numTeams = request.form.get('league_teams')
     league_dateStart = request.form.get('league_dateStart')
     league_dateEnd = request.form.get('league_dateEnd')
-    league_timeStart = request.form.get('timeStart')
+    league_timeStart_HHMM = request.form.get('timeStart')
     league_type = request.form.get('league_type')
+    league_timeStart = league_timeStart_HHMM + ':00'
 
     # Insert into league
     try:
