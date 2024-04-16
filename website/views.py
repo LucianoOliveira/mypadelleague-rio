@@ -12,7 +12,10 @@ views =  Blueprint('views', __name__)
 
 @views.route('/', methods=['GET', 'POST'])
 def home():
-    leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
+    try:
+        leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
+    except Exception as e:
+        print(f"Error: {e}")
     return render_template("index.html", user=current_user, result=leagues_data)
 
 @views.route('/testIndex', methods=['GET', 'POST'])
