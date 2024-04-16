@@ -1,6 +1,16 @@
 {% extends "base.html" %} {% block title %}Rio Padel League{% endblock %} 
 {% block content %}
 
+{% if user.is_authenticated %}
+<!-- button to calculate full ELO -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 text-right">
+            <a href="{{ url_for('views.recalculate_ELO_full') }}" class="btn btn-light btn-round px-5"><i class="icon-calculator"></i> Recalcular ELO</a>
+        </div>
+    </div>
+</div>
+{% endif %}
 <div class="row">
     <div class="col-lg-12">
         <div class="card">

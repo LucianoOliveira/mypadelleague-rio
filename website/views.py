@@ -13,16 +13,16 @@ views =  Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 def home():
     try:
-        db.session.execute(
-            text(f"update tb_league set lg_startTime='20:00:00' where lg_startTime='20:00'"),
-                {}
-            )
-        db.session.commit()
-        db.session.execute(
-            text(f"update tb_league set lg_startTime='09:00:00' where lg_startTime='09:00'"),
-                {}
-            )
-        db.session.commit()
+        # db.session.execute(
+        #     text(f"update tb_league set lg_startTime='20:00:00' where lg_startTime='20:00'"),
+        #         {}
+        #     )
+        # db.session.commit()
+        # db.session.execute(
+        #     text(f"update tb_league set lg_startTime='09:00:00' where lg_startTime='09:00'"),
+        #         {}
+        #     )
+        # db.session.commit()
         leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     except Exception as e:
         print(f"Error: {e}")
@@ -89,6 +89,20 @@ def rankingELO():
 def create_league():
     # leagues_data = League.query.order_by(League.lg_status).all()
     return render_template("create_league.html", user=current_user)
+
+@views.route('/recalculate_ELO_full')
+def recalculate_ELO_full():
+    calculate_ELO_full()
+    # print("recalculate finished")
+    results = db.session.execute(
+        text(f"SELECT pl_id, pl_name, ROUND(pl_rankingNow, 2) as pl_rankingNow, ROUND(pl_totalRankingOpo, 2) as pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames FROM tb_ELO_ranking  order by pl_rankingNow desc"),
+    ).fetchall()   
+    # print("results loaded")
+    # if results:
+    #     print("there are results")
+    # if current_user:
+    #     print("there is user")
+    return render_template("rankingELO.html", user=current_user, result=results)
 
 @views.route('/create_game_day/<leagueID>', methods=['GET', 'POST'])
 @login_required
@@ -1102,7 +1116,8 @@ def submitResultsGameDay(gameDayID):
         calculateGameDayClassification(gameDayID)
         calculateLeagueClassification(league_id)
         # calculate_ELO_full()
-        calculate_ELO_full_background()
+        # calculate_ELO_parcial()
+        # calculate_ELO_full_background()
 
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
 
@@ -2617,3 +2632,218 @@ def start_background_task():
     background_thread = threading.Thread(target=calculate_ELO_full_background)
     background_thread.start()
     #print("Printing after threading")
+
+
+def calculate_ELO_parcial():
+    #print("Print from beggining of ELO calc")
+    # Delete all rows from tb_ELO_ranking
+    # try:
+    #     db.session.execute(
+    #         text(f"DELETE FROM tb_ELO_ranking")
+    #     )
+    #     db.session.commit()             
+    # except Exception as e:
+    #     print("Error1:", e)
+
+    # Delete all rows from tb_ELO_ranking_hist
+    # try:
+    #     db.session.execute(
+    #         text(f"DELETE FROM tb_ELO_ranking_hist")
+    #     )
+    #     db.session.commit()
+    # except Exception as e:
+    #     print("Error1:", e)
+
+    # Write every player with 1000 points and 0 games
+    # try:
+    #     # Execute a SELECT query to fetch the required data from tb_players
+    #     players_data = db.session.execute(
+    #         text("SELECT pl_id, pl_name, pl_2024_ELO FROM tb_players")
+    #     ).fetchall()
+
+    #     # Extract the fetched data and construct the INSERT query
+    #     insert_query = """
+    #         INSERT INTO tb_ELO_ranking (pl_id, pl_name, pl_rankingNow, pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames)
+    #         VALUES (:pl_id, :pl_name, :pl_2024_ELO, 0, 0, 0, 0)
+    #     """
+
+    #     # Execute the INSERT query for each row of data fetched
+    #     for player in players_data:
+    #         db.session.execute(
+    #             text(insert_query),
+    #             {
+    #                 "pl_id": player[0],
+    #                 "pl_name": player[1],
+    #                 "pl_2024_ELO": player[2]
+    #             }
+    #         )
+
+    #     # Commit the transaction
+    #     db.session.commit()
+    # except Exception as e:
+    #     print("Error2:", e)
+
+    # Select every game if league as K higher than 0 and is not on ranking yet
+    try:
+        r1 = db.session.execute(
+            text(f"SELECT gm_id, gm_idPlayer_A1, gm_namePlayer_A1, gm_idPlayer_A2, gm_namePlayer_A2, gm_idPlayer_B1, gm_namePlayer_B1, gm_idPlayer_B2, gm_namePlayer_B2, gm_result_A, gm_result_B, gm_idLeague, gm_date, gm_timeStart FROM tb_game WHERE gm_idLeague IN ( SELECT lg_id FROM tb_league WHERE lg_eloK > 0 AND lg_startDate >= :start_date ) AND gm_id not in (select el_gm_id from tb_ELO_ranking_hist GROUP BY el_gm_id) AND gm_idPlayer_A1 IS NOT NULL ORDER BY gm_date ASC, gm_timeStart ASC"),
+            {"start_date": datetime(2024, 1, 1)},
+        ).fetchall()
+        
+
+        for d1 in r1:
+            # Get current ranking for A1
+            A1_ID = d1[1]
+            playerInfo = db.session.execute(text(f"SELECT pl_rankingNow FROM tb_ELO_ranking WHERE pl_id=:player_id"), {'player_id': A1_ID}).fetchone()
+            A1_ranking = playerInfo[0]
+            
+            # Get current ranking for A2
+            A2_ID = d1[3]
+            playerInfo = db.session.execute(text(f"SELECT pl_rankingNow FROM tb_ELO_ranking WHERE pl_id=:player_id"), {'player_id': A2_ID}).fetchone()
+            A2_ranking = playerInfo[0]
+            
+            # Get current ranking for B1
+            B1_ID = d1[5]
+            playerInfo = db.session.execute(text(f"SELECT pl_rankingNow FROM tb_ELO_ranking WHERE pl_id=:player_id"), {'player_id': B1_ID}).fetchone()
+            B1_ranking = playerInfo[0]
+            
+            # Get current ranking for B2
+            B2_ID = d1[7]
+            playerInfo = db.session.execute(text(f"SELECT pl_rankingNow FROM tb_ELO_ranking WHERE pl_id=:player_id"), {'player_id': B2_ID}).fetchone()
+            B2_ranking = playerInfo[0]
+
+            # Calculate current ELO from teamA and teamB
+            ranking_TeamA = (A1_ranking + A2_ranking) / 2
+            ranking_TeamB = (B1_ranking + B2_ranking) / 2
+
+            ELO_idLeague = d1[11]
+            leagueInfo = db.session.execute(text(f"SELECT lg_eloK FROM tb_league WHERE lg_id=:league_id"), {'league_id': ELO_idLeague}).fetchone()
+            ELO_K = leagueInfo[0]
+
+            # Calculate new ratings
+            if d1[9] > d1[10]:
+                # Update ratings for team A
+                # Calculate rating changes for A1
+                delta_A1 = ELO_K * (1 - (1 / (1 + 10 ** ((ranking_TeamB - A1_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_wins = pl_wins + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_A1, 'player_id': A1_ID})
+                # Calculate rating changes for A2
+                delta_A2 = ELO_K * (1 - (1 / (1 + 10 ** ((ranking_TeamB - A2_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_wins = pl_wins + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_A2, 'player_id': A2_ID})
+                # Update ratings for team B
+                # Calculate rating changes for B1
+                delta_B1 = ELO_K * (0 - (1 / (1 + 10 ** ((ranking_TeamA - B1_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_losses = pl_losses + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_B1, 'player_id': B1_ID})
+                # Calculate rating changes for B2
+                delta_B2 = ELO_K * (0 - (1 / (1 + 10 ** ((ranking_TeamA - B2_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_losses = pl_losses + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_B2, 'player_id': B2_ID})
+            elif d1[10] > d1[9]:
+                # Update ratings for team A
+                # Calculate rating changes for A1
+                delta_A1 = ELO_K * (0 - (1 / (1 + 10 ** ((ranking_TeamB - A1_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_losses = pl_losses + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_A1, 'player_id': A1_ID})
+                # Calculate rating changes for A2
+                delta_A2 = ELO_K * (0 - (1 / (1 + 10 ** ((ranking_TeamB - A2_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_losses = pl_losses + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_A2, 'player_id': A2_ID})
+                # Update ratings for team B
+                # Calculate rating changes for B1
+                delta_B1 = ELO_K * (1 - (1 / (1 + 10 ** ((ranking_TeamA - B1_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_wins = pl_wins + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_B1, 'player_id': B1_ID})
+                # Calculate rating changes for B2
+                delta_B2 = ELO_K * (1 - (1 / (1 + 10 ** ((ranking_TeamA - B2_ranking) / 400))))
+                db.session.execute(text(f"UPDATE tb_ELO_ranking SET pl_rankingNow = pl_rankingNow + :delta, pl_wins = pl_wins + 1, pl_totalGames = pl_totalGames + 1 WHERE pl_id = :player_id"), {'delta': delta_B2, 'player_id': B2_ID})
+
+            if d1[9] == 0 and d1[10] == 0:
+                pass
+            else:
+                # Define the queries
+                queries = [
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': A1_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': A2_ID,
+                        'op1_id': B1_ID,
+                        'op2_id': B2_ID,
+                        'result_team': d1[9],
+                        'result_op': d1[10],
+                        'before_rank': A1_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': A2_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': A1_ID,
+                        'op1_id': B1_ID,
+                        'op2_id': B2_ID,
+                        'result_team': d1[9],
+                        'result_op': d1[10],
+                        'before_rank': A2_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': B1_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': B2_ID,
+                        'op1_id': A1_ID,
+                        'op2_id': A2_ID,
+                        'result_team': d1[10],
+                        'result_op': d1[9],
+                        'before_rank': B1_ranking
+                    },
+                    {
+                        'gm_id': d1[0],
+                        'pl_id': B2_ID,
+                        'date': d1[12],
+                        'time_start': d1[13],
+                        'teammate_id': B1_ID,
+                        'op1_id': A1_ID,
+                        'op2_id': A2_ID,
+                        'result_team': d1[10],
+                        'result_op': d1[9],
+                        'before_rank': B2_ranking
+                    }
+                ]
+                try:
+                    for query in queries:
+                        # Convert date strings to Python date objects
+                        el_date = datetime.strptime(query['date'], '%Y-%m-%d')
+                        el_start_time = datetime.strptime(query['time_start'], '%H:%M:%S').time()
+                        # Execute the query
+                        db.session.add(
+                            ELOrankingHist(
+                                el_gm_id=query['gm_id'],
+                                el_pl_id=query['pl_id'],
+                                el_date=el_date,
+                                el_startTime=el_start_time,
+                                el_pl_id_teammate=query['teammate_id'],
+                                el_pl_name_teammate=db.session.query(Players.pl_name).filter(Players.pl_id == query['teammate_id']).scalar(),
+                                el_pl_id_op1=query['op1_id'],
+                                el_pl_name_op1=db.session.query(Players.pl_name).filter(Players.pl_id == query['op1_id']).scalar(),
+                                el_pl_id_op2=query['op2_id'],
+                                el_pl_name_op2=db.session.query(Players.pl_name).filter(Players.pl_id == query['op2_id']).scalar(),
+                                el_result_team=query['result_team'],
+                                el_result_op=query['result_op'],
+                                el_beforeRank=query['before_rank'],
+                                el_afterRank=db.session.query(ELOranking.pl_rankingNow).filter(ELOranking.pl_id == query['pl_id']).scalar() or 1000
+                            )
+                        )
+                        db.session.commit()
+                    # Commit the transaction
+                    db.session.commit()
+
+                except Exception as e:
+                    # Rollback the transaction if an error occurs
+                    print("Error RHIST:", e)
+                    db.session.rollback()
+
+                finally:
+                    # Close the session
+                    db.session.close()
+
+    except Exception as e:
+        print("Error99:", e)
+
+    #print("Print from end of ELO calc")
