@@ -13,6 +13,11 @@ views =  Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 def home():
     try:
+        db.session.execute(
+            text(f"update tb_league set lg_startTime='20:00:00' where lg_startTime='20:00'"),
+                {}
+            )
+        db.session.commit()
         leagues_data = League.query.order_by(League.lg_status, League.lg_endDate.desc()).all()
     except Exception as e:
         print(f"Error: {e}")
