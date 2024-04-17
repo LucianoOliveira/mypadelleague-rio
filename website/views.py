@@ -1301,17 +1301,27 @@ def insertPlayer():
     playerPhoto = request.form.get('player_photo')
 
     
-
+    # print(f"playerName: {playerName}")
+    # print(f"playerEmail: {playerEmail}")
+    # print(f"playerDOB: {playerDOB}")
     # Check if player already exists
     player_id = 0
     try:
         playerInfo = db.session.execute(
-            text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND pl_email=:player_email AND pl_birthday=:player_dob"),
+            text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND (pl_email=:player_email or pl_birthday=:player_dob)"),
             {"player_name": playerName, "player_email": playerEmail, "player_dob": playerDOB}
         ).fetchone()
         if playerInfo:
-            #print(f"Player found: {playerInfo}")
+            # print(f"Player found: {playerInfo}")
             player_id = playerInfo[0]
+        else:
+            playerInfo = db.session.execute(
+                text(f"SELECT pl_id FROM tb_players WHERE pl_name=:player_name AND pl_birthday=:player_dob"),
+                {"player_name": playerName, "player_dob": playerDOB}
+            ).fetchone()
+            if playerInfo:
+                # print(f"Player found: {playerInfo}")
+                player_id = playerInfo[0]
     except Exception as e:
         print("Error: " + str(e))
 
