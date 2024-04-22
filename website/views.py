@@ -64,6 +64,14 @@ def managementLeague():
 @login_required
 def managementLeague_detail(leagueID):
     # # Fazer updates
+    try:
+        db.session.execute(
+            text(f"UPDATE tb_game AS g JOIN tb_gameday AS gd ON g.gm_idGameDay = gd.gd_id SET g.gm_date = gd.gd_date WHERE gd.gd_idLeague IN (12, 13, 14, 15)")
+            )
+        db.session.commit()
+    except Exception as e:
+          print(f"Error: {e}")
+
     # try:
     #     gameDay_id=114
     #     data1 = '2024-04-21'
