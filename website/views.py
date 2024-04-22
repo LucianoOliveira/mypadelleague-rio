@@ -66,7 +66,7 @@ def managementLeague_detail(leagueID):
     # # Fazer updates
     try:
         db.session.execute(
-            text(f"UPDATE tb_game SET gm_date = (SELECT gd_date FROM tb_gameday WHERE tb_gameday.gd_id = tb_game.gm_idGameDay AND tb_gameday.gd_idLeague IN (12, 13, 14, 15))")
+            text(f"UPDATE tb_game SET gm_date = (SELECT gd_date FROM tb_gameday WHERE tb_gameday.gd_id = tb_game.gm_idGameDay )")
         )
         db.session.commit()
     except Exception as e:
