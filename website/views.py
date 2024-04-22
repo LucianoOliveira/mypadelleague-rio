@@ -64,13 +64,13 @@ def managementLeague():
 @login_required
 def managementLeague_detail(leagueID):
     # # Fazer updates
-    try:
-        db.session.execute(
-            text(f"UPDATE tb_game SET gm_date = (SELECT gd_date FROM tb_gameday WHERE tb_gameday.gd_id = tb_game.gm_idGameDay )")
-        )
-        db.session.commit()
-    except Exception as e:
-        print(f"Error: {e}")
+    # try:
+    #     db.session.execute(
+    #         text(f"UPDATE tb_game SET gm_date = (SELECT gd_date FROM tb_gameday WHERE tb_gameday.gd_id = tb_game.gm_idGameDay )")
+    #     )
+    #     db.session.commit()
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
     # try:
     #     gameDay_id=114
