@@ -65,64 +65,64 @@ def managementLeague():
 def managementLeague_detail(leagueID):
     # Fazer updates
     try:
-        gameDay_id=98
-        data1 = '2024-04-17'
+        gameDay_id=106
+        data1 = '2024-04-18'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
 
-        gameDay_id=99
-        data1 = '2024-04-24'
+        gameDay_id=107
+        data1 = '2024-04-25'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
 
-        gameDay_id=100
-        data1 = '2024-05-01'
+        gameDay_id=108
+        data1 = '2024-05-02'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
         
-        gameDay_id=101
-        data1 = '2024-05-08'
+        gameDay_id=109
+        data1 = '2024-05-09'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
         
-        gameDay_id=102
-        data1 = '2024-05-15'
+        gameDay_id=110
+        data1 = '2024-05-16'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
         
-        gameDay_id=103
-        data1 = '2024-05-22'
+        gameDay_id=111
+        data1 = '2024-05-23'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
         
-        gameDay_id=104
-        data1 = '2024-05-29'
+        gameDay_id=112
+        data1 = '2024-05-30'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
             )
         db.session.commit()
         
-        gameDay_id=105
-        data1 = '2024-06-05'
+        gameDay_id=113
+        data1 = '2024-06-06'
         db.session.execute(
             text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
                 {"data1": data1, "gameDay_id": gameDay_id}
