@@ -63,6 +63,75 @@ def managementLeague():
 @views.route('/managementLeague_detail/<leagueID>', methods=['GET', 'POST'])
 @login_required
 def managementLeague_detail(leagueID):
+    # Fazer updates
+    try:
+        gameDay_id=90
+        data1 = '2024-04-16'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+
+        gameDay_id=91
+        data1 = '2024-04-23'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+
+        gameDay_id=92
+        data1 = '2024-04-30'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+        
+        gameDay_id=93
+        data1 = '2024-05-07'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+        
+        gameDay_id=94
+        data1 = '2024-05-14'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+        
+        gameDay_id=95
+        data1 = '2024-05-21'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+        
+        gameDay_id=96
+        data1 = '2024-05-28'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+        
+        gameDay_id=97
+        data1 = '2024-06-04'
+        db.session.execute(
+            text(f"update tb_gameday set gd_date=:data1 where gd_id=:gameDay_id"),
+                {"data1": data1, "gameDay_id": gameDay_id}
+            )
+        db.session.commit()
+    except Exception as e:
+        print(f"Error: {e}")
+        # Handle the error, maybe log it or display a message to the user
+
     league_data = League.query.filter_by(lg_id=leagueID).first()
     result = GameDay.query.filter_by(gd_idLeague=leagueID).all()
     classification = LeagueClassification.query.filter_by(lc_idLeague=leagueID).order_by(desc(LeagueClassification.lc_ranking)).all()
