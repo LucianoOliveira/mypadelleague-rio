@@ -9458,7 +9458,7 @@ div[class^=description__element] {
     background-color: #fff;
     -webkit-transition: box-shadow .25s;
     transition: box-shadow .25s;
-    height: 100%
+    /* height: 100% */
 }
 
 .card--map {
