@@ -1192,9 +1192,7 @@ def submitResultsGameDay(gameDayID):
 
         calculateGameDayClassification(gameDayID)
         calculateLeagueClassification(league_id)
-        # calculate_ELO_full()
-        # calculate_ELO_parcial()
-        # calculate_ELO_full_background()
+        calculate_ELO_parcial()
 
     return redirect(url_for('views.managementGameDay_detail', gameDayID=gameDayID)) 
 
@@ -2722,54 +2720,6 @@ def start_background_task():
 
 
 def calculate_ELO_parcial():
-    #print("Print from beggining of ELO calc")
-    # Delete all rows from tb_ELO_ranking
-    # try:
-    #     db.session.execute(
-    #         text(f"DELETE FROM tb_ELO_ranking")
-    #     )
-    #     db.session.commit()             
-    # except Exception as e:
-    #     print("Error1:", e)
-
-    # Delete all rows from tb_ELO_ranking_hist
-    # try:
-    #     db.session.execute(
-    #         text(f"DELETE FROM tb_ELO_ranking_hist")
-    #     )
-    #     db.session.commit()
-    # except Exception as e:
-    #     print("Error1:", e)
-
-    # Write every player with 1000 points and 0 games
-    # try:
-    #     # Execute a SELECT query to fetch the required data from tb_players
-    #     players_data = db.session.execute(
-    #         text("SELECT pl_id, pl_name, pl_2024_ELO FROM tb_players")
-    #     ).fetchall()
-
-    #     # Extract the fetched data and construct the INSERT query
-    #     insert_query = """
-    #         INSERT INTO tb_ELO_ranking (pl_id, pl_name, pl_rankingNow, pl_totalRankingOpo, pl_wins, pl_losses, pl_totalGames)
-    #         VALUES (:pl_id, :pl_name, :pl_2024_ELO, 0, 0, 0, 0)
-    #     """
-
-    #     # Execute the INSERT query for each row of data fetched
-    #     for player in players_data:
-    #         db.session.execute(
-    #             text(insert_query),
-    #             {
-    #                 "pl_id": player[0],
-    #                 "pl_name": player[1],
-    #                 "pl_2024_ELO": player[2]
-    #             }
-    #         )
-
-    #     # Commit the transaction
-    #     db.session.commit()
-    # except Exception as e:
-    #     print("Error2:", e)
-
     # Select every game if league as K higher than 0 and is not on ranking yet
     try:
         r1 = db.session.execute(
