@@ -52,8 +52,15 @@
                             <tr data-href="{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}">
                                 <!-- <th scope="row">{{ data['lc_idPlayer'] }}</th> -->
                                 <td class=""  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">
+                                    {% if league.lg_status[4:] == 'Terminado' %}
+                                        {% if loop.index0 == 0 %}
+                                        <i class="fas fa-medal" style="color: gold;"></i>
+                                        {% elif loop.index0 == 1 %}
+                                        <i class="fas fa-medal" style="color: silver;"></i>
+                                        {% endif %}
+                                    {% endif %}
                                     <img src="{{ url_for('views.display_user_image', userID=data['lc_idPlayer'] ) }}" alt="{{ data['lc_namePlayer'] }}" class="rounded-circle" width="40">
-                                    {{ data['lc_namePlayer'] }}
+                                    {{ data['lc_namePlayer'] }} {{ index }}
                                 </td>
                                 <td class="" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_points'] }}</td>
                                 <td class="d-none d-md-table-cell" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['lc_idPlayer']) }}';">{{ data['lc_wins'] }}</td>
