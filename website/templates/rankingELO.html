@@ -35,7 +35,20 @@
                                 <!-- <th scope="row">{{ data['pl_id'] }}</th> -->
                                 {% if data['pl_id'] %}
                                 <td class=""  onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';">
-                                    <img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" alt="{{ data['pl_name'] }}" class="rounded-circle" width="40" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> 
+                                    {% if data['pl_rankingNow']>1300 %}
+                                        <img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" alt="{{ data['pl_name'] }}" class="rounded-circle-gold" width="40" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> 
+                                    {% else %}
+                                        {% if data['pl_rankingNow']>1100 %}
+                                            <img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" alt="{{ data['pl_name'] }}" class="rounded-circle-silver" width="40" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> 
+                                        {% else %}
+                                            {% if data['pl_rankingNow']>900 %}
+                                                <img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" alt="{{ data['pl_name'] }}" class="rounded-circle-brown" width="40" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> 
+                                            {% else %}
+                                                <img src="{{ url_for('views.display_user_image', userID=data['pl_id'] ) }}" alt="{{ data['pl_name'] }}" class="rounded-circle-white" width="40" onclick="window.location.href='{{ url_for('views.player_detail', playerID=data['pl_id']) }}';"> 
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                    
                                     <span style="max-width: 50px;"> {{ data['pl_name'] }}</span>
                                 </td>
                                 {% else %}
